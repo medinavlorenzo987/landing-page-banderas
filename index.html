@@ -728,10 +728,81 @@
                 right: 20px;
             }
         }
+
+        /* --- WATERMARK BACKGROUND --- */
+        .watermark-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            /* Asegura que no bloquee clics */
+            z-index: 999;
+            /* Sobre los fondos, pero debajo de la navbar (1000) */
+            opacity: 0.12;
+            /* Aumentado para que sea claramente visible */
+            overflow: hidden;
+        }
+
+        .watermark-bg svg {
+            width: 70vmin;
+            height: 70vmin;
+            animation: watermarkBreathing 12s ease-in-out infinite;
+        }
+
+        @keyframes watermarkBreathing {
+            0% {
+                transform: scale(1) rotate(-2deg);
+            }
+
+            50% {
+                transform: scale(1.05) rotate(2deg);
+                /* Movimiento suave adicional */
+            }
+
+            100% {
+                transform: scale(1) rotate(-2deg);
+            }
+        }
     </style>
 </head>
 
 <body>
+
+    <!-- WATERMARK ANIMADO -->
+    <div class="watermark-bg" aria-hidden="true">
+        <!-- Bandera Peruana Ondeando -->
+        <svg viewBox="0 0 300 200" width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <path id="waveShape" d="M0,20 Q75,0 150,20 T300,20 L300,180 Q225,160 150,180 T0,180 Z">
+                    <animate attributeName="d" values="M0,20 Q75,0 150,20 T300,20 L300,180 Q225,160 150,180 T0,180 Z;
+                                M0,20 Q75,40 150,20 T300,20 L300,180 Q225,200 150,180 T0,180 Z;
+                                M0,20 Q75,0 150,20 T300,20 L300,180 Q225,160 150,180 T0,180 Z" dur="3s"
+                        repeatCount="indefinite" />
+                </path>
+                <clipPath id="flagWaveClip">
+                    <use href="#waveShape" />
+                </clipPath>
+            </defs>
+
+            <!-- Franjas de la bandera recortadas con la forma de ola -->
+            <g clip-path="url(#flagWaveClip)">
+                <rect x="0" y="0" width="100" height="200" fill="#E53935" />
+                <rect x="100" y="0" width="100" height="200" fill="#FFFFFF" />
+                <rect x="200" y="0" width="100" height="200" fill="#E53935" />
+            </g>
+
+            <!-- Borde sutil para definir la forma de la bandera -->
+            <use href="#waveShape" fill="none" stroke="#000000" stroke-width="2" opacity="0.3" />
+            <!-- Líneas divisorias de las franjas -->
+            <path d="M100,0 L100,200 M200,0 L200,200" stroke="#000000" stroke-width="1" opacity="0.1"
+                clip-path="url(#flagWaveClip)" />
+        </svg>
+    </div>
 
     <!-- NAVBAR STICKY -->
     <header id="header">
