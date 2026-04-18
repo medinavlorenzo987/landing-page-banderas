@@ -739,7 +739,8 @@
             object-fit: cover;
             /* CRÍTICO: z-index: 999 lo pone sobre los fondos. Si fuera -1, los colores de fondo de las secciones lo tapan por completo */
             z-index: 999;
-            opacity: 0.08; /* Subido ligeramente para que se note */
+            opacity: 0.08;
+            /* Subido ligeramente para que se note */
             pointer-events: none;
         }
     </style>
@@ -833,10 +834,11 @@
 
                 <div class="card-footer">
                     <div class="price-wrapper">
-                        <span class="price-label">Precio especial</span>
+                        <span class="price-label">PRECIO POR DOCENA</span>
                         <span class="price">S/ 25.00</span>
                     </div>
                     <div class="action-wrapper">
+                        <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-dark);">Docenas:</span>
                         <div class="qty-selector">
                             <button type="button" class="qty-btn" onclick="changeQty('qty-poliseda', -1)"
                                 aria-label="Disminuir">-</button>
@@ -868,10 +870,11 @@
 
                 <div class="card-footer">
                     <div class="price-wrapper">
-                        <span class="price-label">Precio especial</span>
+                        <span class="price-label">PRECIO POR DOCENA</span>
                         <span class="price">S/ 45.00</span>
                     </div>
                     <div class="action-wrapper">
+                        <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-dark);">Docenas:</span>
                         <div class="qty-selector">
                             <button type="button" class="qty-btn" onclick="changeQty('qty-raso', -1)"
                                 aria-label="Disminuir">-</button>

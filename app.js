@@ -62,7 +62,7 @@ function showToast(productName, qty) {
     const toast = document.getElementById('toastAlert');
     const toastProduct = document.getElementById('toast-product-name');
 
-    toastProduct.innerText = `${qty}x ${productName}`;
+    toastProduct.innerText = `${qty} docena(s) de ${productName}`;
     toast.classList.add('show');
 
     clearTimeout(toastTimeout);
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         carrito.forEach(item => {
             const subtotal = item.price * item.quantity;
             totalPedido += subtotal;
-            mensaje += `- ${item.quantity}x ${item.name} (S/ ${subtotal.toFixed(2)})\n`;
+            mensaje += `- ${item.quantity} docena(s) de ${item.name} (S/ ${subtotal.toFixed(2)})\n`;
         });
 
         mensaje += `\n*Total: S/ ${totalPedido.toFixed(2)}*`;
