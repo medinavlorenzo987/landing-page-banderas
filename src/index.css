@@ -27,7 +27,7 @@
 
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-light);
+            background-color: transparent;
             color: var(--text-dark);
             line-height: 1.6;
             /* Espacio para la navbar sticky */
@@ -135,7 +135,7 @@
 
         /* --- HERO SECTION --- */
         .hero {
-            background: linear-gradient(135deg, #111111 0%, #2A2A2A 100%);
+            background: linear-gradient(135deg, rgba(17,17,17,0.88) 0%, rgba(42,42,42,0.85) 100%);
             color: var(--white);
             padding: 6rem 1.5rem;
             text-align: center;
@@ -207,9 +207,10 @@
 
         /* --- HISTORY & LAW SECTION --- */
         .history-law {
-            background-color: var(--white);
+            background-color: rgba(255,255,255,0.82);
             padding: 4rem 1.5rem;
             border-bottom: 1px solid #eaeaea;
+            backdrop-filter: blur(4px);
         }
 
         .history-law-container {
@@ -532,7 +533,8 @@
 
         /* --- SPECS SECTION (Visual Cards) --- */
         .specs-wrapper {
-            background-color: var(--white);
+            background-color: rgba(255,255,255,0.82);
+            backdrop-filter: blur(4px);
             padding: 5rem 0;
             border-top: 1px solid #eaeaea;
         }
