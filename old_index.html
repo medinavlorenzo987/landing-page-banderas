@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banderas Campiña Premium - Fiestas Patrias 🇵🇪</title>
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #E53935;
+            /* Rojo patriótico */
+            --primary-dark: #C62828;
+            --text-dark: #1A1A1A;
+            --text-light: #666666;
+            --bg-light: #F8F9FA;
+            --white: #FFFFFF;
+            --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 15px 30px rgba(229, 57, 53, 0.15);
+            --border-radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* UX Pro Max: Accessible Focus States */
+        *:focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            /* Espacio para la navbar sticky */
+            padding-top: 76px;
+        }
+
+        /* --- UI NAVBAR (Sticky) --- */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            box-shadow: var(--shadow-sm);
+            z-index: 1000;
+            padding: 1rem 0;
+            transition: var(--transition);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--primary-color);
+        }
+
+        .cart-wrapper {
+            position: relative;
+        }
+
+        .cart-btn {
+            background: var(--white);
+            border: 1.5px solid #E0E0E0;
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .cart-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .cart-count {
+            background: var(--primary-color);
+            color: var(--white);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        /* Animación de salto para el carrito */
+        @keyframes cartBump {
+            0% {
+                transform: scale(1);
+            }
+
+            25% {
+                transform: scale(1.15) translateY(-3px);
+            }
+
+            50% {
+                transform: scale(0.95) translateY(1px);
+            }
+
+            75% {
+                transform: scale(1.05) translateY(-1px);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .cart-bump {
+            animation: cartBump 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border-color: var(--primary-color) !important;
+            color: var(--primary-color) !important;
+        }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            background: linear-gradient(135deg, #111111 0%, #2A2A2A 100%);
+            color: var(--white);
+            padding: 6rem 1.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Patrón de fondo sutil */
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.5;
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 1.2rem;
+        }
+
+        .hero h1 span {
+            color: var(--primary-color);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #B0B0B0;
+            margin-bottom: 2.5rem;
+            font-weight: 300;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-color);
+            color: var(--white);
+            text-decoration: none;
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(229, 57, 53, 0.4);
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(229, 57, 53, 0.5);
+        }
+
+        /* --- HISTORY & LAW SECTION --- */
+        .history-law {
+            background-color: var(--white);
+            padding: 4rem 1.5rem;
+            border-bottom: 1px solid #eaeaea;
+        }
+
+        .history-law-container {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+            background: #FFF9F9;
+            border: 1px solid rgba(229, 57, 53, 0.2);
+            border-radius: var(--border-radius);
+            padding: 3rem 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .history-law-icon {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        .history-law h2 {
+            font-size: 2rem;
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .history-law p {
+            font-size: 1.1rem;
+            color: var(--text-dark);
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+
+        .alert-box {
+            display: inline-flex;
+            align-items: flex-start;
+            gap: 15px;
+            background-color: rgba(229, 57, 53, 0.08);
+            color: var(--primary-dark);
+            padding: 1.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 1rem;
+            border-left: 5px solid var(--primary-color);
+            text-align: left;
+        }
+
+        .alert-box svg {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* --- PRODUCT CARDS --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 5rem 1.5rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 3.5rem;
+            color: var(--text-dark);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        @keyframes staggerFadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            background-color: #ffffff;
+            opacity: 1;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 10;
+            animation: staggerFadeUp 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) backwards;
+        }
+
+        /* Contraste de Textos en la Tarjeta */
+        .card h3,
+        .card p {
+            color: #333333 !important;
+        }
+
+        .card .price {
+            color: #e60000 !important;
+        }
+
+        .card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .card:nth-child(2) {
+            animation-delay: 0.25s;
+        }
+
+        .card:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        .card:nth-child(4) {
+            animation-delay: 0.55s;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+            border-color: rgba(229, 57, 53, 0.2);
+        }
+
+        .badge {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            background: var(--text-dark);
+            color: var(--white);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        .badge.popular {
+            background: var(--primary-color);
+        }
+
+        .card-img-wrapper {
+            overflow: hidden;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            height: 240px;
+        }
+
+        .image-placeholder {
+            width: 100%;
+            height: 100%;
+            background-color: #E0E0E0;
+            color: #757575;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: transform 0.5s ease;
+        }
+
+        .card:hover .image-placeholder {
+            transform: scale(1.02);
+        }
+
+        .card h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            flex-grow: 1;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-footer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .price-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .price-label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .price {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .action-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .qty-selector {
+            display: flex;
+            align-items: center;
+            background: var(--bg-light);
+            border: 2px solid #E0E0E0;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 48px;
+            transition: var(--transition);
+        }
+
+        .qty-selector:focus-within {
+            border-color: var(--primary-color);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1);
+        }
+
+        .qty-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-dark);
+            width: 44px;
+            /* UX Pro Max: Mínimo 44x44pt touch target */
+            height: 100%;
+            font-size: 1.4rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        .qty-btn:hover {
+            background: #EAEAEA;
+            color: var(--primary-color);
+        }
+
+        .qty-btn:active {
+            background: #D5D5D5;
+        }
+
+        .quantity-input {
+            width: 40px;
+            height: 100%;
+            border: none;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            background: transparent;
+            -webkit-appearance: none;
+            margin: 0;
+            outline: none;
+        }
+
+        .quantity-input::-webkit-outer-spin-button,
+        .quantity-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .quantity-input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .btn-add {
+            flex-grow: 1;
+            background: var(--primary-color);
+            color: var(--white);
+            border: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(229, 57, 53, 0.25);
+        }
+
+        .btn-add:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(229, 57, 53, 0.4);
+        }
+
+        .btn-add:active {
+            transform: translateY(2px) scale(0.97);
+            box-shadow: 0 1px 4px rgba(229, 57, 53, 0.2);
+            transition: all 0.1s ease;
+            /* Efecto rápido al hundir */
+        }
+
+        /* --- SPECS SECTION (Visual Cards) --- */
+        .specs-wrapper {
+            background-color: var(--white);
+            padding: 5rem 0;
+            border-top: 1px solid #eaeaea;
+        }
+
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+            gap: 2rem;
+        }
+
+        .spec-card {
+            background: var(--bg-light);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            border-left: 4px solid transparent;
+        }
+
+        .spec-card:hover {
+            background: var(--white);
+            box-shadow: var(--shadow-md);
+            border-left-color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .spec-icon {
+            width: 54px;
+            height: 54px;
+            background: rgba(229, 57, 53, 0.1);
+            color: var(--primary-color);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .spec-card h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            color: var(--text-dark);
+        }
+
+        .spec-card p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        /* Banner de garantía */
+        .guarantee-banner {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, rgba(229, 57, 53, 0.05) 0%, rgba(229, 57, 53, 0.15) 100%);
+            border: 1px solid rgba(229, 57, 53, 0.2);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .guarantee-icon {
+            background: var(--primary-color);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(229, 57, 53, 0.3);
+        }
+
+        .guarantee-content h4 {
+            font-size: 1.2rem;
+            margin-bottom: 0.3rem;
+            color: var(--primary-dark);
+        }
+
+        .guarantee-content p {
+            color: var(--text-dark);
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        /* --- TOAST NOTIFICATION --- */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: -400px;
+            /* Oculto inicialmente */
+            background: var(--white);
+            color: var(--text-dark);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            transition: right 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border-left: 5px solid #10B981;
+            /* Verde éxito */
+        }
+
+        .toast.show {
+            right: 30px;
+        }
+
+        .toast-icon {
+            color: #10B981;
+            display: flex;
+        }
+
+        .toast-content p {
+            margin: 0;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .toast-content span {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .hero {
+                padding: 3rem 1rem;
+            }
+
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+                padding: 0 0.5rem;
+            }
+
+            .history-law {
+                padding: 3rem 1rem;
+            }
+
+            .history-law-container {
+                padding: 2rem 1.5rem;
+            }
+
+            .history-law h2 {
+                font-size: 1.6rem;
+            }
+
+            .specs-wrapper {
+                padding: 3rem 0;
+            }
+
+            .guarantee-banner {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+                padding: 1.5rem;
+            }
+
+            .card-footer {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1.2rem;
+            }
+
+            .price-wrapper {
+                align-items: center;
+                margin-bottom: 0.5rem;
+            }
+
+            .action-wrapper {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .quantity-input {
+                flex: 1;
+            }
+
+            .btn-add {
+                flex: 2;
+                justify-content: center;
+            }
+
+            .toast {
+                right: 20px;
+                left: 20px;
+                bottom: -100px;
+            }
+
+            .toast.show {
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+
+        /* --- WATERMARK VIDEO --- */
+        .watermark-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            /* CRÍTICO: z-index: 10 lo pone sobre los fondos base. */
+            z-index: 10;
+            opacity: 0.08;
+            /* Subido ligeramente para que se note */
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- VIDEO DE FONDO -->
+    <video class="watermark-video" src="fondo-bandera.mp4" autoplay loop muted playsinline aria-hidden="true"></video>
+
+    <!-- NAVBAR STICKY -->
+    <header id="header">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                🇵🇪 Banderas<span>Perú</span>
+            </a>
+            <div class="cart-wrapper">
+                <button id="cart-button" class="cart-btn" aria-label="Ver carrito">
+                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z">
+                        </path>
+                    </svg>
+                    Mi Pedido
+                    <span class="cart-count" id="cart-count">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>El Orgullo de <span>ser Peruano</span></h1>
+            <p>Celebra estas Fiestas Patrias con banderas premium de la más alta calidad, medidas oficiales normadas y
+                listas para lucir con orgullo en todo el Perú.</p>
+            <a href="#catalogo" class="btn-primary">
+                Ver Catálogo
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    style="margin-left:8px">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                </svg>
+            </a>
+        </div>
+    </section>
+
+    <!-- HISTORY & LAW SECTION -->
+    <section class="history-law">
+        <div class="history-law-container">
+            <div class="history-law-icon">
+                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 21v-8m0 0V3m0 10h9.5M4 11h8m-8 0a2 2 0 100-4 2 2 0 000 4zm16 0a2 2 0 100-4 2 2 0 000 4z">
+                    </path>
+                </svg>
+            </div>
+            <h2>Más que un Símbolo, un Deber</h2>
+            <p>La bandera blanquirroja es el emblema máximo de nuestra historia y libertad. Durante las Fiestas Patrias,
+                vestir nuestras casas y negocios de rojo y blanco no solo es una demostración de amor por el Perú, sino
+                también un acto solemne respaldado por la ley.</p>
+
+            <div class="alert-box">
+                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span><strong>Recordatorio Legal:</strong> El izamiento de la Bandera Nacional es obligatorio en todos
+                    los inmuebles (viviendas, locales comerciales e instituciones) durante las Fiestas Patrias. El
+                    incumplimiento de esta norma municipal está sujeto a <strong>multas de hasta el 10% de una
+                        UIT</strong>. ¡No te arriesgues y luce tu bandera con orgullo!</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRODUCTOS -->
+    <main class="container" id="catalogo">
+        <h2 class="section-title">Elige tu Bandera Ideal</h2>
+        <div class="grid">
+
+            <!-- Card 1 -->
+            <article class="card">
+                <span class="badge popular">Más Vendido</span>
+                <div class="card-img-wrapper">
+                    <div class="image-placeholder">Espacio para foto local</div>
+                </div>
+                <h3>Bandera de Exteriores (Poliseda)</h3>
+                <p>Material ultra ligero y resistente al viento. Ideal para techos y fachadas. Secado súper rápido.
+                    Medida oficial: 1.50m x 1.00m.</p>
+
+                <div class="card-footer">
+                    <div class="price-wrapper">
+                        <span class="price-label">PRECIO POR DOCENA</span>
+                        <span class="price">S/ 25.00</span>
+                    </div>
+                    <div class="action-wrapper">
+                        <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-dark);">Docenas:</span>
+                        <div class="qty-selector">
+                            <button type="button" class="qty-btn" onclick="changeQty('qty-poliseda', -1)"
+                                aria-label="Disminuir">-</button>
+                            <input type="number" id="qty-poliseda" class="quantity-input" min="1" value="1"
+                                aria-label="Cantidad">
+                            <button type="button" class="qty-btn" onclick="changeQty('qty-poliseda', 1)"
+                                aria-label="Aumentar">+</button>
+                        </div>
+                        <button class="btn-add" onclick="addToCart('Bandera Poliseda', 'qty-poliseda')">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Agregar
+                        </button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Card 2 -->
+            <article class="card">
+                <span class="badge">Premium</span>
+                <div class="card-img-wrapper">
+                    <div class="image-placeholder">Espacio para foto local</div>
+                </div>
+                <h3>Bandera Institucional (Raso)</h3>
+                <p>Tela gruesa con acabado satinado brillante. Sumamente elegante. Perfecta para interiores, oficinas y
+                    desfiles. Medida oficial: 1.50m x 1.00m.</p>
+
+                <div class="card-footer">
+                    <div class="price-wrapper">
+                        <span class="price-label">PRECIO POR DOCENA</span>
+                        <span class="price">S/ 45.00</span>
+                    </div>
+                    <div class="action-wrapper">
+                        <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-dark);">Docenas:</span>
+                        <div class="qty-selector">
+                            <button type="button" class="qty-btn" onclick="changeQty('qty-raso', -1)"
+                                aria-label="Disminuir">-</button>
+                            <input type="number" id="qty-raso" class="quantity-input" min="1" value="1"
+                                aria-label="Cantidad">
+                            <button type="button" class="qty-btn" onclick="changeQty('qty-raso', 1)"
+                                aria-label="Aumentar">+</button>
+                        </div>
+                        <button class="btn-add" onclick="addToCart('Bandera Raso', 'qty-raso')">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Agregar
+                        </button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Card 3 -->
+            <article class="card">
+                <span class="badge" style="background: var(--text-dark);">Novedad</span>
+                <div class="card-img-wrapper">
+                    <div class="image-placeholder">Espacio para foto local</div>
+                </div>
+                <h3>BANDERINES DE ESCRITORIO</h3>
+                <p>Ideales para oficinas, mesas de recepción y decoración de eventos corporativos. Material resistente
+                    con base firme.</p>
+
+                <div class="card-footer">
+                    <div class="price-wrapper">
+                        <span class="price-label">PRECIO POR DOCENA</span>
+                        <span class="price">S/ 35.00</span>
+                    </div>
+                    <div class="action-wrapper">
+                        <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-dark);">Docenas:</span>
+                        <div class="qty-selector">
+                            <button type="button" class="qty-btn" onclick="changeQty('qty-banderines', -1)"
+                                aria-label="Disminuir">-</button>
+                            <input type="number" id="qty-banderines" class="quantity-input" min="1" value="1"
+                                aria-label="Cantidad">
+                            <button type="button" class="qty-btn" onclick="changeQty('qty-banderines', 1)"
+                                aria-label="Aumentar">+</button>
+                        </div>
+                        <button class="btn-add" onclick="addToCart('Banderines de Escritorio', 'qty-banderines')">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Agregar
+                        </button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Card 4 -->
+            <article class="card">
+                <span class="badge" style="background: var(--text-dark);">Destacado</span>
+                <div class="card-img-wrapper">
+                    <div class="image-placeholder">Espacio para foto local</div>
+                </div>
+                <h3>BANDERA TIPO GOTA</h3>
+                <p>Perfectas para publicidad exterior e interior. Alto impacto visual, fáciles de armar y resistentes a
+                    la intemperie.</p>
+
+                <div class="card-footer">
+                    <div class="price-wrapper">
+                        <span class="price-label">PRECIO POR DOCENA</span>
+                        <span class="price">S/ 90.00</span>
+                    </div>
+                    <div class="action-wrapper">
+                        <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-dark);">Docenas:</span>
+                        <div class="qty-selector">
+                            <button type="button" class="qty-btn" onclick="changeQty('qty-gota', -1)"
+                                aria-label="Disminuir">-</button>
+                            <input type="number" id="qty-gota" class="quantity-input" min="1" value="1"
+                                aria-label="Cantidad">
+                            <button type="button" class="qty-btn" onclick="changeQty('qty-gota', 1)"
+                                aria-label="Aumentar">+</button>
+                        </div>
+                        <button class="btn-add" onclick="addToCart('Bandera Tipo Gota', 'qty-gota')">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Agregar
+                        </button>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </main>
+
+    <!-- ESPECIFICACIONES (Tarjetas visuales) -->
+    <section class="specs-wrapper">
+        <div class="container" style="padding-top: 0; padding-bottom: 0;">
+            <h2 class="section-title">¿Por qué elegir nuestras banderas?</h2>
+
+            <div class="specs-grid">
+
+                <!-- Spec 1 -->
+                <div class="spec-card">
+                    <div class="spec-icon">
+                        <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5">
+                            </path>
+                        </svg>
+                    </div>
+                    <h4>Poliseda de Alta Resistencia</h4>
+                    <p>Nuestra tela poliseda está diseñada para ondear con facilidad y resistir la intemperie sin perder
+                        su color característico.</p>
+                </div>
+
+                <!-- Spec 2 -->
+                <div class="spec-card">
+                    <div class="spec-icon">
+                        <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h4>Raso Premium Brillante</h4>
+                    <p>Un tejido de alta densidad que aporta presencia y elegancia indiscutible, ideal para eventos de
+                        gala e instituciones.</p>
+                </div>
+
+                <!-- Banner Garantía -->
+                <div class="guarantee-banner">
+                    <div class="guarantee-icon">
+                        <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                            </path>
+                        </svg>
+                    </div>
+                    <div class="guarantee-content">
+                        <h4>Confección Normada Oficial</h4>
+                        <p>Te garantizamos que todas nuestras banderas cumplen estrictamente con los colores (Pantone) y
+                            proporciones dictadas por el Estado Peruano. Cero multas, 100% patriotismo.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- TOAST ALERTA (Notificación) -->
+    <div class="toast" id="toastAlert" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-icon">
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+        <div class="toast-content">
+            <p>¡Producto agregado!</p>
+            <span id="toast-product-name">Bandera seleccionada</span>
+        </div>
+    </div>
+
+    <!-- SCRIPT DE INTERACTIVIDAD -->
+
+    <script src="app.js"></script>
+</body>
+
+</html>
