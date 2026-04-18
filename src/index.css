@@ -743,9 +743,7 @@
             width: 100vw;
             height: 100vh;
             object-fit: cover;
-            /* CRÍTICO: z-index: 10 lo pone sobre los fondos base. */
-            z-index: 10;
-            opacity: 0.08;
-            /* Subido ligeramente para que se note */
+            z-index: -1; /* Siempre detrás de todo el contenido */
+            opacity: 0.12;
             pointer-events: none;
         }
