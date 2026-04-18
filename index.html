@@ -737,8 +737,9 @@
             width: 100vw;
             height: 100vh;
             object-fit: cover;
-            z-index: -1;
-            opacity: 0.05;
+            /* CRÍTICO: z-index: 999 lo pone sobre los fondos. Si fuera -1, los colores de fondo de las secciones lo tapan por completo */
+            z-index: 999;
+            opacity: 0.08; /* Subido ligeramente para que se note */
             pointer-events: none;
         }
     </style>
