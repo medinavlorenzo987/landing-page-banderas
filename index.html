@@ -310,20 +310,22 @@
             background: #ffffff;
             border-radius: var(--border-radius);
             padding: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             transition: var(--transition);
             display: flex;
             flex-direction: column;
             position: relative;
-            z-index: 20; /* Mayor que la animación de fondo */
+            z-index: 20;
+            /* Mayor que la animación de fondo */
             animation: staggerFadeUp 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) backwards;
         }
 
         /* Contraste de Textos en la Tarjeta */
-        .card h3, .card p {
+        .card h3,
+        .card p {
             color: #333333 !important;
         }
-        
+
         .card .price {
             color: #e60000 !important;
         }
@@ -340,7 +342,8 @@
             animation-delay: 0.4s;
         }
 
-        border: 1px solid rgba(0, 0, 0, 0.03);
+        .card:nth-child(4) {
+            animation-delay: 0.55s;
         }
 
         .card:hover {
@@ -911,7 +914,8 @@
                     <div class="image-placeholder">Espacio para foto local</div>
                 </div>
                 <h3>BANDERINES DE ESCRITORIO</h3>
-                <p>Ideales para oficinas, mesas de recepción y decoración de eventos corporativos. Material resistente con base firme.</p>
+                <p>Ideales para oficinas, mesas de recepción y decoración de eventos corporativos. Material resistente
+                    con base firme.</p>
 
                 <div class="card-footer">
                     <div class="price-wrapper">
@@ -946,7 +950,8 @@
                     <div class="image-placeholder">Espacio para foto local</div>
                 </div>
                 <h3>BANDERA TIPO GOTA</h3>
-                <p>Perfectas para publicidad exterior e interior. Alto impacto visual, fáciles de armar y resistentes a la intemperie.</p>
+                <p>Perfectas para publicidad exterior e interior. Alto impacto visual, fáciles de armar y resistentes a
+                    la intemperie.</p>
 
                 <div class="card-footer">
                     <div class="price-wrapper">
