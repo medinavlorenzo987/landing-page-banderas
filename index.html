@@ -290,8 +290,8 @@
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-            gap: 2.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
         }
 
         @keyframes staggerFadeUp {
@@ -307,7 +307,8 @@
         }
 
         .card {
-            background: #ffffff;
+            background-color: #ffffff;
+            opacity: 1;
             border-radius: var(--border-radius);
             padding: 1.5rem;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -315,8 +316,7 @@
             display: flex;
             flex-direction: column;
             position: relative;
-            z-index: 20;
-            /* Mayor que la animación de fondo */
+            z-index: 10;
             animation: staggerFadeUp 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) backwards;
         }
 
@@ -408,8 +408,10 @@
 
         .card-footer {
             display: flex;
-            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
             align-items: center;
+            justify-content: space-between;
             margin-top: auto;
             padding-top: 1rem;
             border-top: 1px solid #f0f0f0;
@@ -425,6 +427,7 @@
             color: var(--text-light);
             text-transform: uppercase;
             font-weight: 600;
+            white-space: nowrap;
         }
 
         .price {
@@ -435,6 +438,7 @@
 
         .action-wrapper {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             gap: 8px;
         }
