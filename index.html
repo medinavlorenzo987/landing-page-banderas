@@ -307,15 +307,25 @@
         }
 
         .card {
-            background: var(--white);
+            background: #ffffff;
             border-radius: var(--border-radius);
             padding: 1.5rem;
-            box-shadow: var(--shadow-sm);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             transition: var(--transition);
             display: flex;
             flex-direction: column;
             position: relative;
+            z-index: 20; /* Mayor que la animación de fondo */
             animation: staggerFadeUp 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) backwards;
+        }
+
+        /* Contraste de Textos en la Tarjeta */
+        .card h3, .card p {
+            color: #333333 !important;
+        }
+        
+        .card .price {
+            color: #e60000 !important;
         }
 
         .card:nth-child(1) {
@@ -737,8 +747,8 @@
             width: 100vw;
             height: 100vh;
             object-fit: cover;
-            /* CRÍTICO: z-index: 999 lo pone sobre los fondos. Si fuera -1, los colores de fondo de las secciones lo tapan por completo */
-            z-index: 999;
+            /* CRÍTICO: z-index: 10 lo pone sobre los fondos base. */
+            z-index: 10;
             opacity: 0.08;
             /* Subido ligeramente para que se note */
             pointer-events: none;
@@ -884,6 +894,76 @@
                                 aria-label="Aumentar">+</button>
                         </div>
                         <button class="btn-add" onclick="addToCart('Bandera Raso', 'qty-raso')">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Agregar
+                        </button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Card 3 -->
+            <article class="card">
+                <span class="badge" style="background: var(--text-dark);">Novedad</span>
+                <div class="card-img-wrapper">
+                    <div class="image-placeholder">Espacio para foto local</div>
+                </div>
+                <h3>BANDERINES DE ESCRITORIO</h3>
+                <p>Ideales para oficinas, mesas de recepción y decoración de eventos corporativos. Material resistente con base firme.</p>
+
+                <div class="card-footer">
+                    <div class="price-wrapper">
+                        <span class="price-label">PRECIO POR DOCENA</span>
+                        <span class="price">S/ 35.00</span>
+                    </div>
+                    <div class="action-wrapper">
+                        <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-dark);">Docenas:</span>
+                        <div class="qty-selector">
+                            <button type="button" class="qty-btn" onclick="changeQty('qty-banderines', -1)"
+                                aria-label="Disminuir">-</button>
+                            <input type="number" id="qty-banderines" class="quantity-input" min="1" value="1"
+                                aria-label="Cantidad">
+                            <button type="button" class="qty-btn" onclick="changeQty('qty-banderines', 1)"
+                                aria-label="Aumentar">+</button>
+                        </div>
+                        <button class="btn-add" onclick="addToCart('Banderines de Escritorio', 'qty-banderines')">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Agregar
+                        </button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Card 4 -->
+            <article class="card">
+                <span class="badge" style="background: var(--text-dark);">Destacado</span>
+                <div class="card-img-wrapper">
+                    <div class="image-placeholder">Espacio para foto local</div>
+                </div>
+                <h3>BANDERA TIPO GOTA</h3>
+                <p>Perfectas para publicidad exterior e interior. Alto impacto visual, fáciles de armar y resistentes a la intemperie.</p>
+
+                <div class="card-footer">
+                    <div class="price-wrapper">
+                        <span class="price-label">PRECIO POR DOCENA</span>
+                        <span class="price">S/ 90.00</span>
+                    </div>
+                    <div class="action-wrapper">
+                        <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-dark);">Docenas:</span>
+                        <div class="qty-selector">
+                            <button type="button" class="qty-btn" onclick="changeQty('qty-gota', -1)"
+                                aria-label="Disminuir">-</button>
+                            <input type="number" id="qty-gota" class="quantity-input" min="1" value="1"
+                                aria-label="Cantidad">
+                            <button type="button" class="qty-btn" onclick="changeQty('qty-gota', 1)"
+                                aria-label="Aumentar">+</button>
+                        </div>
+                        <button class="btn-add" onclick="addToCart('Bandera Tipo Gota', 'qty-gota')">
                             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
