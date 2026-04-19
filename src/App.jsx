@@ -6,16 +6,18 @@ import HistoryLaw from './components/HistoryLaw';
 import ProductCatalog from './components/ProductCatalog';
 import Specs from './components/Specs';
 import Toast from './components/Toast';
+import CartModal from './components/CartModal';
 
 function App() {
   const [cart, setCart] = useState([]);
   const [toastData, setToastData] = useState({ visible: false, product: '', qty: 0 });
+  const [modalOpen, setModalOpen] = useState(false);
 
   const addToCart = (productName, price, qty) => {
     setCart((prevCart) => {
       const existing = prevCart.find(item => item.name === productName);
       if (existing) {
-        return prevCart.map(item => 
+        return prevCart.map(item =>
           item.name === productName ? { ...item, quantity: item.quantity + qty } : item
         );
       }
@@ -26,14 +28,9 @@ function App() {
     setTimeout(() => setToastData(prev => ({ ...prev, visible: false })), 3500);
   };
 
-  const handleCheckout = () => {
-    if (cart.length === 0) {
-      alert("Tu carrito está vacío. ¡Agrega algunas banderas para celebrar las Fiestas Patrias!");
-      return;
-    }
-
+  const handleConfirm = ({ name, dni, address }) => {
     const numeroWhatsApp = "51944143492";
-    let mensaje = "Hola, deseo hacer el siguiente pedido:\n\n";
+    let mensaje = `Hola, deseo hacer el siguiente pedido:\n\n`;
     let totalPedido = 0;
 
     cart.forEach(item => {
@@ -43,9 +40,14 @@ function App() {
     });
 
     mensaje += `\n*Total: S/ ${totalPedido.toFixed(2)}*`;
+    mensaje += `\n\n*Datos del cliente:*`;
+    mensaje += `\nNombre: ${name}`;
+    mensaje += `\nDNI: ${dni}`;
+    mensaje += `\nDirección: ${address}`;
 
     const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`;
     window.open(urlWhatsApp, '_blank');
+    setModalOpen(false);
   };
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
@@ -53,12 +55,19 @@ function App() {
   return (
     <>
       <WatermarkVideo />
-      <Navbar cartCount={cartCount} onCheckout={handleCheckout} />
+      <Navbar cartCount={cartCount} onCartClick={() => setModalOpen(true)} />
       <Hero />
       <HistoryLaw />
       <ProductCatalog onAddToCart={addToCart} />
       <Specs />
       <Toast data={toastData} />
+      {modalOpen && (
+        <CartModal
+          cart={cart}
+          onClose={() => setModalOpen(false)}
+          onConfirm={handleConfirm}
+        />
+      )}
     </>
   );
 }
