@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
-const isAdmin = window.location.hash.startsWith('#/admin') || window.location.pathname === '/admin';
+const isAdmin = window.location.pathname.startsWith('/admin') || window.location.hash.startsWith('#/admin');
 
 if (isAdmin) {
   import('./admin/AdminApp.jsx').then(({ default: AdminApp }) => {
