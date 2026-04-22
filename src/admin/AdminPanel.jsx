@@ -237,14 +237,14 @@ function PedidosSection({ orders, loading, onRefresh, onLogout }) {
                                                 onChange={() => toggleOne(order.id)}
                                             />
                                         </td>
-                                        <td className="td-fecha">{fecha}</td>
-                                        <td className="td-nombre">{order.nombre || '—'}</td>
-                                        <td className="td-dni">{order.dni || '—'}</td>
-                                        <td className="td-dir">{order.direccion || '—'}</td>
-                                        <td className="td-prod">{order.producto || '—'}</td>
-                                        <td className="td-qty">{order.cantidad_docenas ?? '—'}</td>
-                                        <td className="td-total">S/ {(order.total_soles || 0).toFixed(2)}</td>
-                                        <td>
+                                        <td className="td-fecha" data-label="Fecha">{fecha}</td>
+                                        <td className="td-nombre" data-label="Cliente">{order.nombre || '—'}</td>
+                                        <td className="td-dni" data-label="DNI">{order.dni || '—'}</td>
+                                        <td className="td-dir" data-label="Dirección">{order.direccion || '—'}</td>
+                                        <td className="td-prod" data-label="Producto">{order.producto || '—'}</td>
+                                        <td className="td-qty" data-label="Docenas">{order.cantidad_docenas ?? '—'}</td>
+                                        <td className="td-total" data-label="Total">S/ {(order.total_soles || 0).toFixed(2)}</td>
+                                        <td data-label="Estado">
                                             <select
                                                 className="ap-estado-select"
                                                 value={estado}
@@ -395,6 +395,7 @@ export default function AdminPanel({ onLogout }) {
     const [orders, setOrders]       = useState([]);
     const [loading, setLoading]     = useState(true);
     const [activeSection, setActive] = useState('pedidos');
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const fetchOrders = useCallback(async () => {
         setLoading(true);
@@ -408,10 +409,20 @@ export default function AdminPanel({ onLogout }) {
 
     useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
+    const handleNavClick = (id) => {
+        setActive(id);
+        setSidebarOpen(false);
+    };
+
     return (
         <div className="ap-layout">
+            {/* Mobile backdrop */}
+            <div
+                className={`ap-sidebar-backdrop ${sidebarOpen ? 'open' : ''}`}
+                onClick={() => setSidebarOpen(false)}
+            />
             {/* Sidebar */}
-            <aside className="ap-sidebar">
+            <aside className={`ap-sidebar ${sidebarOpen ? 'open' : ''}`}>
                 <div className="ap-sidebar-logo">
                     <div className="ap-logo-icon">
                         <svg width="22" height="22" fill="none" stroke="#fff" viewBox="0 0 24 24">
@@ -431,7 +442,7 @@ export default function AdminPanel({ onLogout }) {
                         <button
                             key={item.id}
                             className={`ap-nav-btn ${activeSection === item.id ? 'active' : ''}`}
-                            onClick={() => setActive(item.id)}
+                            onClick={() => handleNavClick(item.id)}
                         >
                             {item.icon}
                             <span>{item.label}</span>
@@ -460,6 +471,15 @@ export default function AdminPanel({ onLogout }) {
             {/* Main */}
             <main className="ap-main">
                 <header className="ap-topbar">
+                    <button
+                        className="ap-mobile-toggle"
+                        onClick={() => setSidebarOpen(true)}
+                        aria-label="Abrir menú"
+                    >
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
                     <div>
                         <h1 className="ap-topbar-title">
                             {NAV_ITEMS.find(n => n.id === activeSection)?.label}
