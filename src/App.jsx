@@ -7,11 +7,13 @@ import ProductCatalog from './components/ProductCatalog';
 import Specs from './components/Specs';
 import Toast from './components/Toast';
 import CartModal from './components/CartModal';
+import CompanyProfile from './components/CompanyProfile';
 
 function App() {
   const [cart, setCart] = useState([]);
   const [toastData, setToastData] = useState({ visible: false, product: '', qty: 0 });
   const [modalOpen, setModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('empresa');
 
   const addToCart = (productName, price, qty) => {
     setCart((prevCart) => {
@@ -55,11 +57,29 @@ function App() {
   return (
     <>
       <WatermarkVideo />
-      <Navbar cartCount={cartCount} onCartClick={() => setModalOpen(true)} />
-      <Hero />
-      <HistoryLaw />
-      <ProductCatalog onAddToCart={addToCart} />
-      <Specs />
+      <Navbar
+        cartCount={cartCount}
+        onCartClick={() => setModalOpen(true)}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
+
+      {/* ── CONTENIDO SEGÚN PESTAÑA ACTIVA ── */}
+      <main role="tabpanel">
+        {activeTab === 'empresa' && (
+          <CompanyProfile />
+        )}
+        {activeTab === 'banderas' && (
+          <>
+            <Hero />
+            <HistoryLaw />
+            <ProductCatalog onAddToCart={addToCart} />
+            <Specs />
+          </>
+        )}
+      </main>
+
+      {/* ── GLOBALES (fuera de pestañas) ── */}
       <Toast data={toastData} />
       {modalOpen && (
         <CartModal

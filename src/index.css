@@ -30,8 +30,7 @@
             background-color: transparent;
             color: var(--text-dark);
             line-height: 1.6;
-            /* Espacio para la navbar sticky */
-            padding-top: 76px;
+            padding-top: 64px;
         }
 
         /* --- UI NAVBAR (Sticky) --- */
@@ -40,11 +39,11 @@
             top: 0;
             left: 0;
             width: 100%;
-            background-color: rgba(255, 255, 255, 0.95);
+            height: 64px;
+            background-color: rgba(255, 255, 255, 0.97);
             backdrop-filter: blur(8px);
             box-shadow: var(--shadow-sm);
             z-index: 1000;
-            padding: 1rem 0;
             transition: var(--transition);
         }
 
@@ -52,9 +51,11 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 1.5rem;
-            display: flex;
-            justify-content: space-between;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
+            column-gap: 1rem;
         }
 
         .logo {
@@ -65,6 +66,7 @@
             align-items: center;
             gap: 8px;
             text-decoration: none;
+            justify-self: start;
         }
 
         .logo span {
@@ -73,6 +75,7 @@
 
         .cart-wrapper {
             position: relative;
+            justify-self: end;
         }
 
         .cart-btn {
@@ -1345,4 +1348,640 @@
             z-index: -1; /* Siempre detrás de todo el contenido */
             opacity: 0.12;
             pointer-events: none;
+        }
+
+        /* ══════════════════════════════════════════════════
+           CORPORATE DESIGN SYSTEM — M&V TECHNOLOGY TEXTIL
+           Paleta: Blanco Algodón | Gris Carbón | Rojo Carmesí
+        ══════════════════════════════════════════════════ */
+        :root {
+            --corp-bg:      #FAFAFA;      /* Blanco Algodón       */
+            --corp-text:    #333333;      /* Gris Carbón          */
+            --corp-accent:  #8B1515;      /* Rojo Carmesí Elegante*/
+            --corp-accent-light: rgba(139,21,21,0.08);
+            --corp-accent-mid:   rgba(139,21,21,0.18);
+            --corp-border:  #E4E4E4;
+            --corp-gray:    #F0F0F0;
+            --corp-radius:  16px;
+            --corp-shadow:  0 8px 32px rgba(0,0,0,0.08);
+            --corp-shadow-hover: 0 16px 48px rgba(139,21,21,0.14);
+            --corp-transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* ── TABS DENTRO DEL NAVBAR ── */
+        .nav-tabs {
+            display: flex;
+            align-items: stretch;
+            justify-self: center;
+            gap: 0.25rem;
+            height: 44px;
+            padding: 0.25rem;
+            border-radius: 999px;
+            background: rgba(139, 21, 21, 0.05);
+            border: 1px solid rgba(139, 21, 21, 0.15);
+        }
+
+        .nav-tab-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 0 1rem;
+            height: 100%;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--corp-text);
+            background: transparent;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: var(--corp-transition);
+            opacity: 0.75;
+            white-space: nowrap;
+        }
+
+        .nav-tab-btn:hover {
+            opacity: 1;
+            color: var(--corp-accent);
+        }
+
+        .nav-tab-btn--active {
+            color: #fff;
+            background: var(--corp-accent);
+            opacity: 1;
+            box-shadow: 0 4px 12px rgba(139, 21, 21, 0.28);
+        }
+
+        .nav-tab-btn--active svg {
+            stroke: currentColor;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                padding-top: 64px;
+            }
+
+            header {
+                height: 64px;
+                padding: 0;
+            }
+
+            .nav-container {
+                grid-template-columns: auto 1fr auto;
+                column-gap: 0.75rem;
+            }
+
+            .nav-tabs {
+                width: 100%;
+                min-width: 0;
+                height: 40px;
+            }
+
+            .nav-tab-btn {
+                flex: 1;
+                justify-content: center;
+                padding: 0 0.6rem;
+                font-size: 0.82rem;
+                gap: 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding-top: 106px;
+            }
+
+            header {
+                height: auto;
+                min-height: 100px;
+                padding: 0;
+            }
+
+            .nav-container {
+                grid-template-columns: auto 1fr;
+                grid-template-areas:
+                    "logo cart"
+                    "tabs tabs";
+                row-gap: 0.45rem;
+                padding: 0.45rem 0.75rem 0.55rem;
+            }
+
+            .logo {
+                grid-area: logo;
+            }
+
+            .cart-wrapper {
+                grid-area: cart;
+            }
+
+            .nav-tabs {
+                grid-area: tabs;
+                height: 36px;
+                width: 100%;
+            }
+
+            .nav-tab-btn {
+                font-size: 0.76rem;
+                padding: 0 0.45rem;
+            }
+
+            .nav-tab-btn svg {
+                display: none;
+            }
+        }
+
+        @media (max-width: 360px) {
+            body {
+                padding-top: 102px;
+            }
+
+            .nav-container {
+                padding: 0.35rem 0.6rem 0.5rem;
+            }
+
+            .nav-tabs {
+                height: 34px;
+                gap: 0.2rem;
+                padding: 0.2rem;
+            }
+
+            .nav-tab-btn {
+                font-size: 0.7rem;
+                padding: 0 0.35rem;
+            }
+
+            .cart-btn {
+                padding: 0.35rem 0.55rem;
+                font-size: 0.75rem;
+            }
+        }
+
+        /* ── TAB NAVIGATION (legacy — ya no se usa) ── */
+        .tab-nav {
+            background: rgba(250, 250, 250, 0.96);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--corp-border);
+            position: sticky;
+            top: 76px;           /* justo bajo el Navbar fijo */
+            z-index: 900;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+
+        .tab-nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .tab-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 1rem 1.5rem;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--corp-text);
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            transition: var(--corp-transition);
+            opacity: 0.65;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            opacity: 1;
+            color: var(--corp-accent);
+            border-bottom-color: var(--corp-accent-mid);
+        }
+
+        .tab-btn--active {
+            color: var(--corp-accent);
+            border-bottom-color: var(--corp-accent);
+            opacity: 1;
+        }
+
+        .tab-btn--active svg {
+            stroke: var(--corp-accent);
+        }
+
+        /* ── COMPANY PROFILE WRAPPER ── */
+        .cp-wrapper {
+            background-color: var(--corp-bg);
+            color: var(--corp-text);
+        }
+
+        .cp-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* ── SHARED: Eyebrow label ── */
+        .cp-eyebrow {
+            display: inline-block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--corp-accent);
+            background: var(--corp-accent-light);
+            border: 1px solid var(--corp-accent-mid);
+            padding: 0.3rem 0.9rem;
+            border-radius: 30px;
+            margin-bottom: 1.2rem;
+        }
+
+        .cp-eyebrow--dark {
+            color: #fff;
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.25);
+        }
+
+        /* ── SHARED: Section title ── */
+        .cp-section-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--corp-text);
+            text-align: center;
+            margin-bottom: 2.5rem;
+            line-height: 1.2;
+        }
+
+        .cp-section-title--left {
+            text-align: left;
+            color: #fff;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ── SHARED: Image placeholder ── */
+        .cp-placeholder {
+            background: var(--corp-gray);
+            border: 2px dashed #BDBDBD;
+            border-radius: var(--corp-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9E9E9E;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        /* ── SHARED: RUC pill / badge ── */
+        .cp-ruc-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: rgba(255,255,255,0.9);
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 0.45rem 1.1rem;
+            border-radius: 30px;
+            backdrop-filter: blur(6px);
+            margin-top: 1.5rem;
+        }
+
+        /* ══════════════════════════════════════════════════
+           SECCIÓN 1 — HERO CORPORATIVO
+        ══════════════════════════════════════════════════ */
+        .cp-hero {
+            background: linear-gradient(135deg, #1a0505 0%, #6b0f0f 50%, #8B1515 100%);
+            padding: 5rem 1.5rem 4rem;
+            display: grid;
+            grid-template-columns: 1fr 420px;
+            gap: 3rem;
+            align-items: center;
+            max-width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Decorative dot pattern */
+        .cp-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+            background-size: 24px 24px;
+            pointer-events: none;
+        }
+
+        .cp-hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .cp-title {
+            font-size: 3.2rem;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.2rem;
+        }
+
+        .cp-subtitle {
+            font-size: 1.15rem;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.7;
+            max-width: 540px;
+        }
+
+        .cp-hero-photo {
+            height: 320px;
+            position: relative;
+            z-index: 1;
+            border: 2px dashed rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* ══════════════════════════════════════════════════
+           SECCIÓN 2 — MISIÓN & VISIÓN
+        ══════════════════════════════════════════════════ */
+        .cp-mv-section {
+            padding: 5rem 0;
+            background: var(--corp-bg);
+        }
+
+        .cp-mv-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .cp-mv-card {
+            background: #fff;
+            border: 1px solid var(--corp-border);
+            border-radius: var(--corp-radius);
+            padding: 2.5rem;
+            box-shadow: var(--corp-shadow);
+            transition: var(--corp-transition);
+            border-top: 4px solid var(--corp-border);
+        }
+
+        .cp-mv-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--corp-shadow-hover);
+            border-top-color: var(--corp-accent);
+        }
+
+        .cp-mv-card--accent {
+            background: linear-gradient(145deg, #fff 60%, rgba(139,21,21,0.03) 100%);
+        }
+
+        .cp-mv-icon {
+            font-size: 2.4rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .cp-mv-card h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--corp-accent);
+            margin-bottom: 1rem;
+        }
+
+        .cp-mv-card p {
+            font-size: 0.97rem;
+            color: var(--corp-text);
+            line-height: 1.8;
+            font-style: italic;
+        }
+
+        .cp-factory-photo {
+            height: 260px;
+            width: 100%;
+        }
+
+        /* ══════════════════════════════════════════════════
+           SECCIÓN 3 — HISTORIA
+        ══════════════════════════════════════════════════ */
+        .cp-history-section {
+            background: linear-gradient(135deg, #1a0505 0%, #8B1515 100%);
+            padding: 5rem 1.5rem;
+        }
+
+        .cp-history-layout {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 3.5rem;
+            align-items: center;
+        }
+
+        .cp-founders-photo {
+            height: 460px;
+            border: 2px dashed rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.5);
+            border-radius: var(--corp-radius);
+        }
+
+        .cp-history-text {
+            color: #fff;
+        }
+
+        .cp-history-body p {
+            font-size: 0.97rem;
+            line-height: 1.85;
+            color: rgba(255,255,255,0.82);
+            margin-bottom: 1.2rem;
+            font-style: italic;
+        }
+
+        .cp-history-body strong {
+            color: #fff;
+            font-style: normal;
+        }
+
+        /* Founder name chips */
+        .cp-founders-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin: 1.5rem 0;
+        }
+
+        .cp-chip {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: #fff;
+            font-size: 0.82rem;
+            padding: 0.35rem 0.9rem;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+
+        .cp-chip em {
+            font-weight: 400;
+            font-style: normal;
+            opacity: 0.75;
+        }
+
+        .cp-ruc-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.85);
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+        }
+
+        /* ══════════════════════════════════════════════════
+           SECCIÓN 4 — PILARES
+        ══════════════════════════════════════════════════ */
+        .cp-pillars-section {
+            background: var(--corp-bg);
+            padding: 5rem 0;
+            border-top: 1px solid var(--corp-border);
+        }
+
+        .cp-pillars-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+
+        .cp-pillar-card {
+            background: #fff;
+            border: 1px solid var(--corp-border);
+            border-radius: var(--corp-radius);
+            padding: 2rem 1.5rem;
+            text-align: center;
+            transition: var(--corp-transition);
+            box-shadow: var(--corp-shadow);
+        }
+
+        .cp-pillar-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--corp-accent-mid);
+            box-shadow: var(--corp-shadow-hover);
+        }
+
+        .cp-pillar-icon {
+            font-size: 2.5rem;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        .cp-pillar-card h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--corp-accent);
+            margin-bottom: 0.75rem;
+        }
+
+        .cp-pillar-card p {
+            font-size: 0.88rem;
+            color: #666;
+            line-height: 1.7;
+        }
+
+        /* ══════════════════════════════════════════════════
+           RESPONSIVE — TABLET (≤ 900px)
+        ══════════════════════════════════════════════════ */
+        @media (max-width: 900px) {
+            .tab-nav {
+                top: 64px;
+            }
+
+            .cp-hero {
+                grid-template-columns: 1fr;
+                padding: 3.5rem 1.2rem;
+            }
+
+            .cp-hero-photo {
+                height: 220px;
+            }
+
+            .cp-title {
+                font-size: 2.4rem;
+            }
+
+            .cp-mv-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cp-history-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .cp-founders-photo {
+                height: 260px;
+            }
+
+            .cp-pillars-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .cp-section-title {
+                font-size: 1.8rem;
+            }
+        }
+
+        /* ══════════════════════════════════════════════════
+           RESPONSIVE — MOBILE (≤ 480px)
+        ══════════════════════════════════════════════════ */
+        @media (max-width: 480px) {
+            .tab-nav {
+                top: 58px;
+            }
+
+            .tab-btn {
+                padding: 0.8rem 1rem;
+                font-size: 0.85rem;
+                gap: 5px;
+            }
+
+            .cp-title {
+                font-size: 1.8rem;
+            }
+
+            .cp-subtitle {
+                font-size: 1rem;
+            }
+
+            .cp-section-title {
+                font-size: 1.5rem;
+                margin-bottom: 1.8rem;
+            }
+
+            .cp-mv-card {
+                padding: 1.8rem 1.2rem;
+            }
+
+            .cp-pillars-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cp-history-section {
+                padding: 3rem 1rem;
+            }
+
+            .cp-history-layout {
+                gap: 2rem;
+            }
+
+            .cp-mv-section {
+                padding: 3rem 0;
+            }
+
+            .cp-pillars-section {
+                padding: 3rem 0;
+            }
         }

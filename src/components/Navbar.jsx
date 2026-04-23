@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-export default function Navbar({ cartCount, onCartClick }) {
+export default function Navbar({ cartCount, onCartClick, activeTab, onTabChange }) {
     const [bump, setBump] = useState(false);
 
     useEffect(() => {
@@ -14,13 +14,41 @@ export default function Navbar({ cartCount, onCartClick }) {
     return (
         <header id="header">
             <div className="nav-container">
+
+                {/* ── LOGO ── */}
                 <a href="#" className="logo">
                     🇵🇪 Banderas<span>Perú</span>
                 </a>
+
+                {/* ── TABS (centro) ── */}
+                <nav className="nav-tabs" aria-label="Navegación principal" role="tablist">
+                    <button
+                        id="tab-empresa"
+                        className={`nav-tab-btn ${activeTab === 'empresa' ? 'nav-tab-btn--active' : ''}`}
+                        onClick={() => onTabChange('empresa')}
+                        aria-selected={activeTab === 'empresa'}
+                        role="tab"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        Nuestra Empresa
+                    </button>
+                    <button
+                        id="tab-banderas"
+                        className={`nav-tab-btn ${activeTab === 'banderas' ? 'nav-tab-btn--active' : ''}`}
+                        onClick={() => onTabChange('banderas')}
+                        aria-selected={activeTab === 'banderas'}
+                        role="tab"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                        Campaña Banderas
+                    </button>
+                </nav>
+
+                {/* ── CARRITO ── */}
                 <div className="cart-wrapper">
-                    <button 
-                        id="cart-button" 
-                        className={`cart-btn ${bump ? 'cart-bump' : ''}`} 
+                    <button
+                        id="cart-button"
+                        className={`cart-btn ${bump ? 'cart-bump' : ''}`}
                         aria-label="Ver carrito"
                         onClick={onCartClick}
                     >
@@ -31,6 +59,7 @@ export default function Navbar({ cartCount, onCartClick }) {
                         <span className="cart-count" id="cart-count">{cartCount}</span>
                     </button>
                 </div>
+
             </div>
         </header>
     );
