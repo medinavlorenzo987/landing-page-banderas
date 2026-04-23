@@ -7,15 +7,11 @@ import ProductCatalog from './components/ProductCatalog';
 import Specs from './components/Specs';
 import Toast from './components/Toast';
 import CartModal from './components/CartModal';
-import CompanyProfile from './components/CompanyProfile'; // <-- Importamos tu nueva página
 
 function App() {
   const [cart, setCart] = useState([]);
   const [toastData, setToastData] = useState({ visible: false, product: '', qty: 0 });
   const [modalOpen, setModalOpen] = useState(false);
-
-  // <-- Nuevo estado para saber qué "pestaña" estamos viendo
-  const [activeTab, setActiveTab] = useState('empresa');
 
   const addToCart = (productName, price, qty) => {
     setCart((prevCart) => {
@@ -59,48 +55,11 @@ function App() {
   return (
     <>
       <WatermarkVideo />
-      {/* El Navbar y el carrito siempre se quedan arriba */}
       <Navbar cartCount={cartCount} onCartClick={() => setModalOpen(true)} />
-
-      {/* --- MENÚ DE NAVEGACIÓN SECUNDARIO --- */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', padding: '20px', background: '#FAFAFA', borderBottom: '2px solid #EAEAEA' }}>
-        <button
-          onClick={() => setActiveTab('empresa')}
-          style={{
-            padding: '10px 24px', cursor: 'pointer', borderRadius: '8px', fontWeight: 'bold', border: 'none', transition: '0.3s',
-            backgroundColor: activeTab === 'empresa' ? '#8B1515' : '#E0E0E0',
-            color: activeTab === 'empresa' ? 'white' : '#555'
-          }}
-        >
-          Nuestra Empresa
-        </button>
-        <button
-          onClick={() => setActiveTab('banderas')}
-          style={{
-            padding: '10px 24px', cursor: 'pointer', borderRadius: '8px', fontWeight: 'bold', border: 'none', transition: '0.3s',
-            backgroundColor: activeTab === 'banderas' ? '#8B1515' : '#E0E0E0',
-            color: activeTab === 'banderas' ? 'white' : '#555'
-          }}
-        >
-          Campaña Banderas
-        </button>
-      </div>
-
-      {/* --- LÓGICA DE PESTAÑAS --- */}
-      {activeTab === 'empresa' ? (
-        // Si la pestaña es 'empresa', mostramos la historia de la familia
-        <CompanyProfile />
-      ) : (
-        // Si la pestaña es 'banderas', mostramos todo tu catálogo original
-        <>
-          <Hero />
-          <HistoryLaw />
-          <ProductCatalog onAddToCart={addToCart} />
-          <Specs />
-        </>
-      )}
-
-      {/* Pop-ups globales (Toast y Modal) */}
+      <Hero />
+      <HistoryLaw />
+      <ProductCatalog onAddToCart={addToCart} />
+      <Specs />
       <Toast data={toastData} />
       {modalOpen && (
         <CartModal
