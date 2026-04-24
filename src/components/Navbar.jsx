@@ -17,7 +17,7 @@ export default function Navbar({ cartCount, onCartClick, activeTab, onTabChange 
 
                 {/* ── LOGO ── */}
                 <a href="#" className="logo">
-                    🇵🇪 Banderas<span>Perú</span>
+                    M&V <span>Textil</span>
                 </a>
 
                 {/* ── TABS (centro) ── */}

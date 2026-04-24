@@ -17,9 +17,9 @@ export default function CompanyProfile() {
                         RUC: 20615687872 &nbsp;|&nbsp; Ate, Lima - Perú
                     </div>
                 </div>
-                {/* Placeholder foto hero */}
-                <div className="cp-hero-photo cp-placeholder">
-                    <span>📸 [FOTO PRINCIPAL: Fachada de instalaciones M&amp;V]</span>
+                {/* Foto principal */}
+                <div className="cp-hero-photo">
+                    <img src="../../fanpage.jpeg" alt="M&V Technology Textil - Fachada de instalaciones" loading="lazy" />
                 </div>
             </section>
 
