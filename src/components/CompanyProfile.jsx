@@ -19,7 +19,7 @@ export default function CompanyProfile() {
                 </div>
                 {/* Foto principal */}
                 <div className="cp-hero-photo">
-                    <img src="../../fanpage.jpeg" alt="M&V Technology Textil - Fachada de instalaciones" loading="lazy" />
+                    <img src="fanpage.jpeg" alt="M&V Technology Textil - Fachada de instalaciones" loading="lazy" />
                 </div>
             </section>
 
