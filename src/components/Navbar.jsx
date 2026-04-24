@@ -17,7 +17,7 @@ export default function Navbar({ cartCount, onCartClick, activeTab, onTabChange 
 
                 {/* ── LOGO ── */}
                 <a href="#" className="logo">
-                    M&V <span>Textil</span>
+                    <img src="/logo.png" alt="M&V Textil Logo" style={{ maxHeight: '60px', width: 'auto', objectFit: 'contain', mixBlendMode: 'multiply' }} />
                 </a>
 
                 {/* ── TABS (centro) ── */}

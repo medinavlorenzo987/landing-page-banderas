@@ -19,7 +19,7 @@ export default function CompanyProfile() {
                 </div>
                 {/* Foto principal */}
                 <div className="cp-hero-photo">
-                    <img src="fanpage.jpeg" alt="M&V Technology Textil - Fachada de instalaciones" loading="lazy" />
+                    <img src="taller.png" alt="M&V Technology Textil - Instalaciones del taller" loading="lazy" />
                 </div>
             </section>
 
@@ -73,26 +73,14 @@ export default function CompanyProfile() {
                         <h2 className="cp-section-title cp-section-title--left">📖 Un Legado Tejido en Familia</h2>
                         <div className="cp-history-body">
                             <p>
-                                "Todo comenzó en la cálida ciudad de Ica, bajo la mirada atenta y las manos hábiles de nuestra abuela,
-                                <strong> María Luisa Chumpitaz</strong>. Con el rítmico sonido de su clásica máquina de coser, ella
-                                tejía el inicio de nuestra pasión por la confección."
+                                Todo comenzó en la cálida ciudad de Ica, bajo la mirada atenta y las manos hábiles de nuestra abuela. Con el rítmico sonido de su clásica máquina de coser, ella tejía el inicio de nuestra gran pasión familiar por la confección.
                             </p>
                             <p>
-                                "Ese amor por el trabajo bien hecho fue transmitido a nuestro padre, quien incursionó con éxito
-                                en grandes campañas de banderas patrias y uniformes."
+                                Ese amor por el detalle y el trabajo bien hecho fue transmitido a nuestro padre, quien tomó la posta y llevó el oficio al siguiente nivel. Con visión y esfuerzo, él incursionó con éxito en el exigente mundo de la confección, destacando en grandes campañas de banderas patrias y uniformes.
                             </p>
                             <p>
-                                "Inspirados por esta herencia, la tercera generación —sus cuatro hijos:
-                                <strong> Lorenzo Luis, Luis Alejandro, Betty Alondra y Selene Stefany Medina Vega</strong>—
-                                decidimos unir fuerzas y fundar <strong>M&amp;V TECHNOLOGY TEXTIL S.A.C.</strong>
-                                Hoy, desde Ate, Lima, combinamos tradición artesanal con innovación tecnológica."
+                                Inspirados por esta invaluable herencia, la tercera generación —cuatro hermanos criados entre hilos y telas— decidimos unir fuerzas para llevar el negocio familiar a una escala industrial. Fundamos M&amp;V TECHNOLOGY TEXTIL S.A.C. y hoy, desde nuestra sede en Ate, Lima, combinamos la tradición artesanal con la innovación tecnológica.
                             </p>
-                        </div>
-
-                        <div className="cp-founders-chips">
-                            {['Lorenzo Luis', 'Luis Alejandro', 'Betty Alondra', 'Selene Stefany'].map(name => (
-                                <span key={name} className="cp-chip">{name} <em>Medina Vega</em></span>
-                            ))}
                         </div>
 
                         <div className="cp-ruc-badge">
