@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 
-const ESTADOS = ['pendiente', 'en proceso', 'entregado', 'cancelado'];
+const ESTADOS = ['pendiente', 'pagado', 'en proceso', 'entregado', 'cancelado'];
 
 const ESTADO_META = {
     'pendiente':  { bg: '#FEF3C7', color: '#92400E', dot: '#F59E0B' },
+    'pagado':     { bg: '#E0E7FF', color: '#3730A3', dot: '#4F46E5' },
     'en proceso': { bg: '#DBEAFE', color: '#1E40AF', dot: '#3B82F6' },
     'entregado':  { bg: '#D1FAE5', color: '#065F46', dot: '#10B981' },
     'cancelado':  { bg: '#FEE2E2', color: '#991B1B', dot: '#EF4444' },
@@ -60,13 +61,138 @@ function exportToCSV(rows) {
     URL.revokeObjectURL(url);
 }
 
+/* ─── Modal de Edición ──────────────────────────────────── */
+function EditModal({ order, onClose, onSaved }) {
+    const PRODUCTOS = [
+        'BANDERAS 60x90', 'BANDERAS 90x150', 'BANDERINES DE ESCRITORIO',
+        'BANDERAS BORDADAS', 'BANDERAS PERSONALIZADAS', 'ROLLOS DE TELA',
+    ];
+
+    const [form, setForm] = useState({
+        nombre:          order.nombre         || '',
+        dni:             order.dni            || '',
+        direccion:       order.direccion      || '',
+        producto:        order.producto       || '',
+        cantidad_docenas: order.cantidad_docenas ?? '',
+        total_soles:     order.total_soles    ?? '',
+    });
+    const [saving, setSaving] = useState(false);
+    const [error, setError]   = useState('');
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        setError('');
+        const payload = {
+            nombre:           form.nombre.trim(),
+            dni:              form.dni.trim(),
+            direccion:        form.direccion.trim(),
+            producto:         form.producto,
+            cantidad_docenas: parseFloat(form.cantidad_docenas) || 0,
+            total_soles:      parseFloat(form.total_soles)      || 0,
+        };
+        const { error: supaErr } = await supabase
+            .from('ventas')
+            .update(payload)
+            .eq('id', order.id);
+        if (supaErr) {
+            setError('Error al guardar: ' + supaErr.message);
+            setSaving(false);
+        } else {
+            // Pasamos el payload al padre para actualizar el estado local sin refetch
+            onSaved(payload);
+        }
+    };
+
+    // Cerrar con Escape
+    useEffect(() => {
+        const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
+        window.addEventListener('keydown', handleKey);
+        return () => window.removeEventListener('keydown', handleKey);
+    }, [onClose]);
+
+    return (
+        <div className="ap-modal-backdrop" onClick={onClose}>
+            <div className="ap-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+                {/* Header */}
+                <div className="ap-modal-header">
+                    <div>
+                        <h2 className="ap-modal-title">Editar Pedido</h2>
+                        <p className="ap-modal-sub">ID: {order.id}</p>
+                    </div>
+                    <button className="ap-modal-close" onClick={onClose} aria-label="Cerrar">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Form */}
+                <form className="ap-modal-form" onSubmit={handleSubmit}>
+                    <div className="ap-modal-grid">
+                        <div className="ap-modal-field">
+                            <label htmlFor="edit-nombre">Nombre del Cliente</label>
+                            <input id="edit-nombre" name="nombre" type="text" value={form.nombre}
+                                onChange={handleChange} placeholder="Nombre completo" required />
+                        </div>
+                        <div className="ap-modal-field">
+                            <label htmlFor="edit-dni">DNI</label>
+                            <input id="edit-dni" name="dni" type="text" maxLength="8" value={form.dni}
+                                onChange={handleChange} placeholder="12345678" />
+                        </div>
+                        <div className="ap-modal-field ap-modal-full">
+                            <label htmlFor="edit-direccion">Dirección</label>
+                            <input id="edit-direccion" name="direccion" type="text" value={form.direccion}
+                                onChange={handleChange} placeholder="Av. Ejemplo 123, Lima" />
+                        </div>
+                        <div className="ap-modal-field ap-modal-full">
+                            <label htmlFor="edit-producto">Producto</label>
+                            <select id="edit-producto" name="producto" value={form.producto} onChange={handleChange} required>
+                                <option value="" disabled>Selecciona un producto</option>
+                                {PRODUCTOS.map(p => <option key={p} value={p}>{p}</option>)}
+                            </select>
+                        </div>
+                        <div className="ap-modal-field">
+                            <label htmlFor="edit-docenas">Docenas</label>
+                            <input id="edit-docenas" name="cantidad_docenas" type="number" min="0" step="0.5"
+                                value={form.cantidad_docenas} onChange={handleChange} required />
+                        </div>
+                        <div className="ap-modal-field">
+                            <label htmlFor="edit-total">Total (S/)</label>
+                            <input id="edit-total" name="total_soles" type="number" min="0" step="0.01"
+                                value={form.total_soles} onChange={handleChange} required />
+                        </div>
+                    </div>
+
+                    {error && <p className="ap-modal-error">{error}</p>}
+
+                    <div className="ap-modal-actions">
+                        <button type="button" className="ap-modal-btn-cancel" onClick={onClose} disabled={saving}>
+                            Cancelar
+                        </button>
+                        <button type="submit" className="ap-modal-btn-save" disabled={saving}>
+                            {saving ? 'Guardando...' : 'Guardar Cambios'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
 /* ─── Sección: Pedidos ─────────────────────────────────────────── */
-function PedidosSection({ orders, loading, onRefresh, onLogout }) {
+function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
     const [filter, setFilter]       = useState('todos');
     const [search, setSearch]       = useState('');
     const [updating, setUpdating]   = useState(null);
     const [emitting, setEmitting]   = useState(null);
     const [selected, setSelected]   = useState([]);
+    const [editOrder, setEditOrder] = useState(null);
 
     const filtered = orders.filter(o => {
         const estado = o.estado || 'pendiente';
@@ -84,10 +210,22 @@ function PedidosSection({ orders, loading, onRefresh, onLogout }) {
     const toggleOne = (id) =>
         setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
-    const updateEstado = async (id, estado) => {
+    const updateEstado = async (id, nuevoEstado) => {
+        // 1. Guardar el valor previo por si hay que revertir
+        const prevEstado = orders.find(o => o.id === id)?.estado || 'pendiente';
+
+        // 2. Actualización optimista: el color cambia INSTANTÁNEAMENTE
+        setOrders(prev => prev.map(o => o.id === id ? { ...o, estado: nuevoEstado } : o));
         setUpdating(id);
-        const { error } = await supabase.from('ventas').update({ estado }).eq('id', id);
-        if (!error) onRefresh();
+
+        // 3. Persistir en Supabase
+        const { error } = await supabase.from('ventas').update({ estado: nuevoEstado }).eq('id', id);
+
+        if (error) {
+            // 4. Si falla, revertir al estado anterior
+            setOrders(prev => prev.map(o => o.id === id ? { ...o, estado: prevEstado } : o));
+            alert('No se pudo actualizar el estado. Intenta de nuevo.');
+        }
         setUpdating(null);
     };
 
@@ -100,7 +238,12 @@ function PedidosSection({ orders, loading, onRefresh, onLogout }) {
             });
             if (error) throw error;
             if (data?.error) throw new Error(data.error);
-            onRefresh();
+            // Actualiza solo la URL del comprobante y el estado en el estado local
+            if (data?.comprobante_url) {
+                setOrders(prev => prev.map(o =>
+                    o.id === id ? { ...o, comprobante_url: data.comprobante_url, estado: 'pagado' } : o
+                ));
+            }
         } catch (err) {
             console.error("Error emitiendo boleta:", err);
             alert("Error al emitir boleta: " + err.message);
@@ -121,8 +264,23 @@ function PedidosSection({ orders, loading, onRefresh, onLogout }) {
         .filter(o => (o.estado || 'pendiente') !== 'cancelado')
         .reduce((s, o) => s + (o.total_soles || 0), 0);
 
+    const handleSaved = (updatedFields) => {
+        // Fusiona los campos editados en el estado local sin refetch
+        setOrders(prev => prev.map(o =>
+            o.id === editOrder.id ? { ...o, ...updatedFields } : o
+        ));
+        setEditOrder(null);
+    };
+
     return (
         <>
+            {editOrder && (
+                <EditModal
+                    order={editOrder}
+                    onClose={() => setEditOrder(null)}
+                    onSaved={handleSaved}
+                />
+            )}
             {/* Stats cards */}
             <div className="ap-stats">
                 <StatCard label="Total Pedidos"  value={orders.length}           growth="+12%" positive icon="orders" />
@@ -231,6 +389,7 @@ function PedidosSection({ orders, loading, onRefresh, onLogout }) {
                                 <th>Total</th>
                                 <th>Comprobante</th>
                                 <th>Estado</th>
+                                <th>Editar</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -293,6 +452,25 @@ function PedidosSection({ orders, loading, onRefresh, onLogout }) {
                                                     </option>
                                                 ))}
                                             </select>
+                                        </td>
+                                        <td data-label="Editar">
+                                            {order.comprobante_url ? (
+                                                <span className="ap-edit-locked" title="No editable: boleta emitida">
+                                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                    </svg>
+                                                </span>
+                                            ) : (
+                                                <button
+                                                    className="ap-edit-btn"
+                                                    onClick={() => setEditOrder(order)}
+                                                    title="Editar pedido"
+                                                >
+                                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
                                 );
@@ -442,6 +620,16 @@ export default function AdminPanel({ onLogout }) {
         setLoading(false);
     }, []);
 
+    // Refresco silencioso: actualiza los datos sin activar el spinner de loading
+    // (evita el desmonte de la tabla y el salto de scroll)
+    const silentRefresh = useCallback(async () => {
+        const { data, error } = await supabase
+            .from('ventas')
+            .select('*')
+            .order('fecha_creacion', { ascending: false });
+        if (!error) setOrders(data || []);
+    }, []);
+
     useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
     const handleNavClick = (id) => {
@@ -534,7 +722,7 @@ export default function AdminPanel({ onLogout }) {
                 </header>
 
                 <div className="ap-content">
-                    {activeSection === 'pedidos'   && <PedidosSection  orders={orders} loading={loading} onRefresh={fetchOrders} onLogout={onLogout} />}
+                    {activeSection === 'pedidos'   && <PedidosSection  orders={orders} setOrders={setOrders} loading={loading} onRefresh={silentRefresh} onLogout={onLogout} />}
                     {activeSection === 'metricas'  && <MetricasSection  orders={orders} />}
                     {activeSection === 'logistica' && <LogisticaSection />}
                 </div>

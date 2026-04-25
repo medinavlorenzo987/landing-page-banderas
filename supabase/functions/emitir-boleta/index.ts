@@ -212,10 +212,10 @@ serve(async (req) => {
     }
 
     // 7. Actualizar el pedido en Supabase
-    console.log("Guardando URL en la tabla 'ventas'...");
+    console.log("Guardando URL y estado en la tabla 'ventas'...");
     const { error: updateError } = await supabase
       .from('ventas')
-      .update({ comprobante_url: comprobanteUrl })
+      .update({ comprobante_url: comprobanteUrl, estado: 'pagado' })
       .eq('id', orderId);
 
     if (updateError) {
