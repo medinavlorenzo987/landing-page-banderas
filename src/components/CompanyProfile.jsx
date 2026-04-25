@@ -53,9 +53,7 @@ export default function CompanyProfile() {
                     </div>
 
                     {/* Placeholder foto fábrica */}
-                    <div className="cp-placeholder cp-factory-photo">
-                        <span>📸 [FOTO 1: Vista de la fábrica, máquinas y producción]</span>
-                    </div>
+                    <img src="/acto.png" alt="Planta de producción M&V Textil" style={{ width: '100%', maxHeight: '500px', objectFit: 'cover', borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', marginTop: '20px' }} />
                 </div>
             </section>
 
@@ -64,9 +62,19 @@ export default function CompanyProfile() {
                 <div className="cp-container cp-history-layout">
 
                     {/* Placeholder foto fundadores */}
-                    <div className="cp-placeholder cp-founders-photo">
-                        <span>📸 [FOTO 2: Los 4 hermanos Medina Vega en la fábrica]</span>
-                    </div>
+                    <img 
+                        src="/logo.png" 
+                        alt="Logo M&V Textil" 
+                        style={{ 
+                            width: '100%', 
+                            maxWidth: '400px', 
+                            backgroundColor: '#ffffff', 
+                            borderRadius: '16px', 
+                            padding: '20px', 
+                            boxShadow: '0 10px 25px rgba(0,0,0,0.2)', 
+                            objectFit: 'contain' 
+                        }} 
+                    />
 
                     <div className="cp-history-text">
                         <span className="cp-eyebrow cp-eyebrow--dark">Tres Generaciones de Pasión</span>
