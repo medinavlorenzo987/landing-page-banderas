@@ -42,7 +42,16 @@ export default function ProductCatalog({ onAddToCart }) {
 
     return (
         <main className="container section-focus-frame" id="catalogo">
-            <h2 className="section-title">Elige tu Bandera Ideal</h2>
+            <h2 className="section-title">
+                <div className="flex items-center justify-center gap-3">
+                    <span>Elige Tus Banderas</span>
+                    <img
+                        src="https://flagcdn.com/w40/pe.png"
+                        alt="Bandera de Perú"
+                        className="w-8 h-auto rounded-sm"
+                    />
+                </div>
+            </h2>
             <div className="grid">
                 {products.map((product) => (
                     <ProductCard key={product.id} product={product} onAddToCart={onAddToCart} />
