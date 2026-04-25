@@ -138,7 +138,12 @@ header {
 
 /* --- HERO SECTION --- */
 .hero {
-    background: linear-gradient(135deg, rgba(17, 17, 17, 0.88) 0%, rgba(42, 42, 42, 0.85) 100%);
+    background-image: 
+        linear-gradient(rgba(26, 5, 5, 0.75), rgba(15, 5, 5, 0.85)),
+        url('/acto.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     color: var(--white);
     padding: 6rem 1.5rem;
     text-align: center;
@@ -154,13 +159,9 @@ header {
     left: 0;
     right: 0;
     bottom: 0;
-    background-image:
-        radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-        url('../fanpage.jpeg');
-    background-size: 20px 20px, 30% auto;
-    background-position: center;
-    background-repeat: repeat, repeat;
-    opacity: 0.1;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 24px 24px;
+    opacity: 0.4;
     z-index: 1;
 }
 
