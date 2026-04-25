@@ -219,6 +219,18 @@ header {
     padding: 4rem 1.5rem;
     border-bottom: 1px solid #eaeaea;
     backdrop-filter: blur(4px);
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.history-law::before {
+    content: none;
+}
+
+.history-law .history-law-container {
+    position: relative;
+    z-index: 1;
 }
 
 .history-law-container {
@@ -230,6 +242,8 @@ header {
     border-radius: var(--border-radius);
     padding: 3rem 2rem;
     box-shadow: var(--shadow-sm);
+    position: relative;
+    z-index: 10;
 }
 
 .history-law-icon {
@@ -545,6 +559,18 @@ header {
     backdrop-filter: blur(4px);
     padding: 5rem 0;
     border-top: 1px solid #eaeaea;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.specs-wrapper::before {
+    content: none;
+}
+
+.specs-wrapper .container {
+    position: relative;
+    z-index: 1;
 }
 
 .specs-grid {
@@ -554,11 +580,13 @@ header {
 }
 
 .spec-card {
-    background: var(--bg-light);
+    background: #FFFFFF;
     padding: 2rem;
     border-radius: var(--border-radius);
     transition: var(--transition);
     border-left: 4px solid transparent;
+    position: relative;
+    z-index: 10;
 }
 
 .spec-card:hover {
@@ -595,7 +623,7 @@ header {
 /* Banner de garantía */
 .guarantee-banner {
     grid-column: 1 / -1;
-    background: linear-gradient(135deg, rgba(229, 57, 53, 0.05) 0%, rgba(229, 57, 53, 0.15) 100%);
+    background: #FFF1F1;
     border: 1px solid rgba(229, 57, 53, 0.2);
     border-radius: var(--border-radius);
     padding: 2rem;
@@ -1772,9 +1800,13 @@ header {
     content: '';
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-    background-size: 24px 24px;
     pointer-events: none;
+    z-index: 0;
+    opacity: 0.03;
+    background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-width='1'%3E%3Cpath d='M0 20h80M0 60h80'/%3E%3Cpath d='M20 0v80M60 0v80'/%3E%3C/g%3E%3Cg fill='none' stroke='%23F8FAFC' stroke-width='0.8'%3E%3Cpath d='M0 0l80 80M80 0L0 80'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 80px 80px;
+    background-repeat: repeat;
 }
 
 .cp-hero-content {
@@ -1821,6 +1853,18 @@ header {
 .cp-mv-section {
     padding: 5rem 0;
     background: var(--corp-bg);
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.cp-mv-section::before {
+    content: none;
+}
+
+.cp-mv-section .cp-container {
+    position: relative;
+    z-index: 1;
 }
 
 .cp-mv-grid {
@@ -1838,6 +1882,8 @@ header {
     box-shadow: var(--corp-shadow);
     transition: var(--corp-transition);
     border-top: 4px solid var(--corp-border);
+    position: relative;
+    z-index: 10;
 }
 
 .cp-mv-card:hover {
@@ -1881,6 +1927,27 @@ header {
 .cp-history-section {
     background: linear-gradient(135deg, #1a0505 0%, #8B1515 100%);
     padding: 5rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.cp-history-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.03;
+    background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-width='1'%3E%3Cpath d='M0 20h80M0 60h80'/%3E%3Cpath d='M20 0v80M60 0v80'/%3E%3C/g%3E%3Cg fill='none' stroke='%23F8FAFC' stroke-width='0.8'%3E%3Cpath d='M0 0l80 80M80 0L0 80'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 80px 80px;
+    background-repeat: repeat;
+}
+
+.cp-history-section .cp-container {
+    position: relative;
+    z-index: 1;
 }
 
 .cp-history-layout {
@@ -1959,6 +2026,36 @@ header {
     background: var(--corp-bg);
     padding: 5rem 0;
     border-top: 1px solid var(--corp-border);
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.cp-pillars-section::before {
+    content: none;
+}
+
+.cp-pillars-section .cp-container {
+    position: relative;
+    z-index: 1;
+}
+
+.alert-box,
+.guarantee-banner {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.alert-box::before,
+.guarantee-banner::before {
+    content: none;
+}
+
+.alert-box > *,
+.guarantee-banner > * {
+    position: relative;
+    z-index: 1;
 }
 
 .cp-pillars-grid {
@@ -1975,6 +2072,8 @@ header {
     text-align: center;
     transition: var(--corp-transition);
     box-shadow: var(--corp-shadow);
+    position: relative;
+    z-index: 10;
 }
 
 .cp-pillar-card:hover {
@@ -2639,4 +2738,4 @@ header {
     .legal-modal-footer { padding: 0.8rem 1.2rem 1.2rem; }
     .legal-modal-btn { width: 100%; text-align: center; }
 }
-
+
