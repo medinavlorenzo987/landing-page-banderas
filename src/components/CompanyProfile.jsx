@@ -25,7 +25,7 @@ export default function CompanyProfile() {
 
             {/* ── MISIÓN & VISIÓN ── */}
             <section className="cp-mv-section">
-                <div className="cp-container">
+                <div className="cp-container section-focus-frame">
                     <h2 className="cp-section-title">Nuestra Esencia</h2>
                     <div className="cp-mv-grid">
 
@@ -101,7 +101,7 @@ export default function CompanyProfile() {
 
             {/* ── VALORES / PILARES ── */}
             <section className="cp-pillars-section">
-                <div className="cp-container">
+                <div className="cp-container section-focus-frame">
                     <h2 className="cp-section-title">Nuestros Pilares</h2>
                     <div className="cp-pillars-grid">
                         {[

@@ -292,6 +292,17 @@ header {
     padding: 5rem 1.5rem;
 }
 
+.section-focus-frame {
+    border: 1px solid transparent;
+    border-radius: 1rem;
+    transition: all 500ms ease-in-out;
+}
+
+.section-focus-frame:hover {
+    border-color: #E5E7EB;
+    background: rgba(249, 250, 251, 0.5);
+}
+
 .section-title {
     text-align: center;
     font-size: 2.2rem;

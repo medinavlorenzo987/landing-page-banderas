@@ -41,7 +41,7 @@ export default function ProductCatalog({ onAddToCart }) {
     ];
 
     return (
-        <main className="container" id="catalogo">
+        <main className="container section-focus-frame" id="catalogo">
             <h2 className="section-title">Elige tu Bandera Ideal</h2>
             <div className="grid">
                 {products.map((product) => (

@@ -1,7 +1,7 @@
 export default function HistoryLaw() {
     return (
         <section className="history-law">
-            <div className="history-law-container">
+            <div className="history-law-container section-focus-frame">
                 <div className="history-law-icon">
                     <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 21v-8m0 0V3m0 10h9.5M4 11h8m-8 0a2 2 0 100-4 2 2 0 000 4zm16 0a2 2 0 100-4 2 2 0 000 4z"></path>
