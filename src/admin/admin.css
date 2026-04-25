@@ -139,6 +139,7 @@ body { font-family: 'Inter', 'Poppins', sans-serif; background: #F1F5F9; color: 
 .ap-chart-placeholder {
     background: #fff; border-radius: 16px; padding: 1.5rem 1.8rem;
     box-shadow: 0 2px 8px rgba(0,0,0,.05); border: 1px solid #F1F5F9;
+    width: 100%; min-width: 0; overflow: hidden; box-sizing: border-box;
 }
 .ap-chart-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: .5rem; }
 .ap-chart-header h3  { font-size: 1rem; font-weight: 800; color: #0F172A; }
@@ -166,6 +167,7 @@ body { font-family: 'Inter', 'Poppins', sans-serif; background: #F1F5F9; color: 
     border: 1.5px solid #E2E8F0; background: #fff;
     font-size: .8rem; font-weight: 700; color: #64748B;
     cursor: pointer; font-family: inherit; transition: all .2s;
+    flex-shrink: 0;
 }
 .ap-filter-tab:hover  { border-color: #94A3B8; color: #1E293B; }
 .ap-filter-tab.active { background: #0F172A; color: #fff; border-color: #0F172A; }
@@ -513,13 +515,18 @@ body { font-family: 'Inter', 'Poppins', sans-serif; background: #F1F5F9; color: 
     /* Toolbar: scroll filters */
     .ap-toolbar { flex-direction: column; align-items: stretch; gap: .7rem; }
     .ap-filter-tabs {
+        display: flex;
         overflow-x: auto; flex-wrap: nowrap;
+        white-space: nowrap;
         -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
         padding-bottom: 4px;
+        padding-right: 1.5rem; /* Margen final para que no se pegue al borde */
         scrollbar-width: none;
     }
     .ap-filter-tabs::-webkit-scrollbar { display: none; }
-    .ap-filter-tab { white-space: nowrap; flex-shrink: 0; font-size: .75rem; padding: .38rem .7rem; }
+    .ap-filter-tab { white-space: nowrap; font-size: .75rem; padding: .38rem .7rem; }
+    .ap-filter-tab:last-child { margin-right: 1rem; } /* Seguridad extra para navegadores webkit */
 
     .ap-toolbar-right { width: 100%; margin-left: 0; }
     .ap-search { min-width: unset; flex: 1; padding: .45rem .8rem; }
