@@ -505,7 +505,7 @@ body { font-family: 'Inter', 'Poppins', sans-serif; background: #F1F5F9; color: 
     .ap-growth { font-size: .65rem; padding: .2rem .45rem; }
 
     /* Chart */
-    .ap-chart-placeholder { padding: 1rem; border-radius: 12px; }
+    .ap-chart-placeholder { padding: 1rem .8rem; border-radius: 12px; }
     .ap-chart-header h3 { font-size: .9rem; }
     .ap-chart-bars { height: 90px; }
     .ap-bar-label { font-size: .6rem; }
