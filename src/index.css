@@ -1245,9 +1245,9 @@ header {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.6rem 0;
+    padding: 0.65rem 0;
     border-bottom: 1px solid #ebebeb;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
 }
 
 .modal-item:last-child {
@@ -1258,18 +1258,90 @@ header {
     flex: 1;
     color: var(--text-dark);
     font-weight: 500;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.modal-item-qty {
-    color: var(--text-light);
-    font-size: 0.85rem;
-    white-space: nowrap;
+/* ── Controles de cantidad [ - ] N [ + ] ── */
+.modal-item-qty-ctrl {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: #F1F5F9;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.qty-btn {
+    background: none;
+    border: none;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #475569;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+    line-height: 1;
+    padding: 0;
+    font-family: inherit;
+}
+
+.qty-btn:hover:not(:disabled) {
+    background: #CBD5E1;
+    color: var(--primary-dark);
+}
+
+.qty-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.qty-value {
+    min-width: 26px;
+    text-align: center;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    user-select: none;
 }
 
 .modal-item-price {
     font-weight: 700;
     color: var(--primary-color);
     white-space: nowrap;
+    font-size: 0.9rem;
+    min-width: 64px;
+    text-align: right;
+}
+
+/* ── Botón eliminar (papelera) ── */
+.modal-item-remove {
+    background: none;
+    border: none;
+    padding: 4px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #CBD5E1;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: color 0.2s, background 0.2s;
+    flex-shrink: 0;
+}
+
+.modal-item-remove:hover {
+    color: #DC2626;
+    background: #FEE2E2;
 }
 
 .modal-total {
@@ -2023,3 +2095,548 @@ header {
         padding: 3rem 0;
     }
 }
+
+/* ══════════════════════════════════════════════════
+   LEGAL COMPLIANCE — Cookie Banner, Footer, Terms Checkbox
+   Cumplimiento: Ley N° 29733 · Ley N° 29571 (Perú)
+   ══════════════════════════════════════════════════ */
+
+/* ── COOKIE BANNER ─────────────────────────────────────────────── */
+@keyframes cookieSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.cookie-banner {
+    position: fixed;
+    bottom: 1.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 2.4rem);
+    max-width: 760px;
+    z-index: 9998;
+    animation: cookieSlideUp 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.cookie-banner-inner {
+    background: #1a1a2e;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 1rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.35);
+    backdrop-filter: blur(8px);
+}
+
+.cookie-banner-icon {
+    font-size: 1.8rem;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.cookie-banner-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.cookie-banner-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.15rem;
+}
+
+.cookie-banner-body {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.cookie-link {
+    color: #F87171;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.cookie-link:hover { color: #FCA5A5; }
+
+.cookie-banner-actions {
+    flex-shrink: 0;
+}
+
+.cookie-btn-accept {
+    background: linear-gradient(135deg, #B71C1C, #E53935);
+    color: #fff;
+    border: none;
+    padding: 0.6rem 1.4rem;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(183,28,28,0.4);
+}
+
+.cookie-btn-accept:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 600px) {
+    .cookie-banner-inner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.8rem;
+        padding: 1rem;
+    }
+    .cookie-banner-actions { width: 100%; }
+    .cookie-btn-accept { width: 100%; text-align: center; }
+}
+
+/* ── FOOTER LEGAL ──────────────────────────────────────────────── */
+.site-footer {
+    background: #0F172A;
+    color: rgba(255,255,255,0.75);
+    font-size: 0.88rem;
+    padding: 3rem 1.5rem 0;
+    position: relative;
+    z-index: 10;
+}
+
+.footer-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1.4fr;
+    gap: 2.5rem;
+    padding-bottom: 2.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+/* Marca */
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 0.7rem;
+}
+
+.footer-tagline {
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.6;
+    margin-bottom: 0.4rem;
+}
+
+.footer-address {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.4);
+}
+
+/* Columnas */
+.footer-col-title {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: rgba(255,255,255,0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+}
+
+.footer-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.footer-link {
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+}
+
+.footer-link:hover { color: #FCA5A5; }
+
+/* Libro de Reclamaciones */
+.footer-reclamos-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: linear-gradient(135deg, rgba(183,28,28,0.18), rgba(229,57,53,0.12));
+    border: 1px solid rgba(229,57,53,0.3);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.25s;
+    margin-bottom: 0.75rem;
+}
+
+.footer-reclamos-btn:hover {
+    background: rgba(229,57,53,0.25);
+    border-color: rgba(229,57,53,0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(183,28,28,0.25);
+}
+
+.footer-reclamos-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(229,57,53,0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #F87171;
+    flex-shrink: 0;
+}
+
+.footer-reclamos-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.footer-reclamos-text strong {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.footer-reclamos-text small {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.03em;
+}
+
+.footer-indecopi-note {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.3);
+    line-height: 1.5;
+}
+
+/* Barra inferior */
+.footer-bottom {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.2rem 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.3);
+}
+
+.footer-bottom-legal {
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+}
+
+@media (max-width: 768px) {
+    .footer-inner {
+        grid-template-columns: 1fr 1fr;
+        gap: 1.8rem;
+    }
+    .footer-brand { grid-column: 1 / -1; }
+}
+
+@media (max-width: 480px) {
+    .site-footer { padding: 2rem 1rem 0; }
+    .footer-inner {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    .footer-brand { grid-column: 1; }
+    .footer-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.2rem;
+    }
+}
+
+/* ── CHECKOUT: Checkbox legal + botón deshabilitado ─────────────── */
+.modal-terms-field {
+    background: #FAFAFA;
+    border: 1px solid #E8E8E8;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.modal-terms-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    cursor: pointer;
+    font-size: 0.83rem;
+    color: #555;
+    line-height: 1.5;
+    user-select: none;
+}
+
+.modal-terms-checkbox {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    margin-top: 1px;
+    border-radius: 5px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+    flex-shrink: 0;
+}
+
+.terms-link {
+    color: var(--primary-color);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    font-weight: 600;
+}
+
+.terms-link:hover { color: var(--primary-dark); }
+
+/* Botón-como-link en el checkbox (para abrir modales sin href) */
+.terms-link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    display: inline;
+}
+
+/* Botón deshabilitado mientras no acepta */
+.modal-submit--disabled,
+.modal-submit:disabled {
+    background: #94A3B8 !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    opacity: 0.65;
+}
+
+/* ── Botón-como-link en Cookie Banner ─────────────────────────── */
+.cookie-link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    display: inline;
+}
+
+/* ── Botón-como-link en Footer ─────────────────────────────────── */
+.footer-link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    text-align: left;
+    display: block;
+}
+
+/* ══════════════════════════════════════════════════
+   LEGAL MODALS — TerminosCondiciones / PoliticaPrivacidad / PoliticaCookies
+   ══════════════════════════════════════════════════ */
+@keyframes legalModalIn {
+    from { opacity: 0; transform: translateY(16px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+/* Overlay (fondo oscuro) */
+.legal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    background: rgba(10, 15, 30, 0.72);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: fadeIn 0.2s ease;
+    overflow-y: auto;
+}
+
+/* Caja del modal */
+.legal-modal {
+    background: #fff;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 680px;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.3);
+    animation: legalModalIn 0.28s cubic-bezier(0.34,1.56,0.64,1);
+    overflow: hidden;
+}
+
+/* Header */
+.legal-modal-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.4rem 1.6rem 1rem;
+    border-bottom: 1px solid #F1F5F9;
+    flex-shrink: 0;
+}
+
+.legal-modal-header-icon {
+    font-size: 2rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.legal-modal-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0F172A;
+    margin: 0 0 3px;
+    line-height: 1.2;
+}
+
+.legal-modal-sub {
+    font-size: 0.75rem;
+    color: #94A3B8;
+    margin: 0;
+}
+
+.legal-modal-close {
+    margin-left: auto;
+    flex-shrink: 0;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    color: #64748B;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.legal-modal-close:hover {
+    background: #FEE2E2;
+    color: #DC2626;
+    border-color: #FECACA;
+}
+
+/* Cuerpo scrolleable */
+.legal-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.4rem 1.8rem;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.legal-modal-body h3 {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: var(--primary-dark, #8B0000);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 1.4rem 0 0.5rem;
+}
+
+.legal-modal-body h3:first-child {
+    margin-top: 0;
+}
+
+.legal-modal-body p {
+    font-size: 0.88rem;
+    color: #475569;
+    line-height: 1.75;
+    margin-bottom: 0.6rem;
+}
+
+.legal-modal-body ul {
+    padding-left: 1.3rem;
+    margin-bottom: 0.8rem;
+}
+
+.legal-modal-body ul li {
+    font-size: 0.87rem;
+    color: #475569;
+    line-height: 1.7;
+    margin-bottom: 0.3rem;
+}
+
+.legal-modal-body strong {
+    color: #1E293B;
+}
+
+.legal-modal-body em {
+    color: #64748B;
+    font-style: italic;
+}
+
+/* Footer del modal */
+.legal-modal-footer {
+    padding: 1rem 1.8rem 1.4rem;
+    border-top: 1px solid #F1F5F9;
+    display: flex;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+.legal-modal-btn {
+    background: linear-gradient(135deg, #0F172A, #1E293B);
+    color: #fff;
+    border: none;
+    padding: 0.65rem 1.8rem;
+    border-radius: 30px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+    box-shadow: 0 4px 14px rgba(15,23,42,0.25);
+}
+
+.legal-modal-btn:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
+}
+
+/* Responsive — mobile */
+@media (max-width: 480px) {
+    .legal-overlay { padding: 0; align-items: flex-end; }
+
+    .legal-modal {
+        max-height: 90vh;
+        border-radius: 20px 20px 0 0;
+        max-width: 100%;
+    }
+
+    .legal-modal-header { padding: 1.1rem 1.2rem 0.8rem; gap: 0.8rem; }
+    .legal-modal-header-icon { font-size: 1.6rem; }
+    .legal-modal-title { font-size: 1rem; }
+
+    .legal-modal-body { padding: 1rem 1.2rem; }
+    .legal-modal-body h3 { font-size: 0.82rem; }
+    .legal-modal-body p, .legal-modal-body ul li { font-size: 0.83rem; }
+
+    .legal-modal-footer { padding: 0.8rem 1.2rem 1.2rem; }
+    .legal-modal-btn { width: 100%; text-align: center; }
+}
+
