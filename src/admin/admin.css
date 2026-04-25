@@ -430,7 +430,7 @@ body { font-family: 'Inter', 'Poppins', sans-serif; background: #F1F5F9; color: 
         color: #94A3B8;
         text-transform: uppercase;
         letter-spacing: .04em;
-        min-width: 75px;
+        min-width: 100px;
         flex-shrink: 0;
     }
 
@@ -479,20 +479,19 @@ body { font-family: 'Inter', 'Poppins', sans-serif; background: #F1F5F9; color: 
 
 /* ── Responsive: Small phone (max-width: 400px) ───────────────── */
 @media (max-width: 400px) {
-    .ap-stats { grid-template-columns: 1fr; }
+    .ap-stats { grid-template-columns: repeat(2, 1fr); gap: .5rem; }
     .ap-stat-card {
-        display: flex; align-items: center; gap: 1rem;
-        padding: .9rem 1rem;
+        padding: .8rem;
     }
-    .ap-stat-top { margin-bottom: 0; }
-    .ap-stat-value { font-size: 1.15rem; }
+    .ap-stat-top { margin-bottom: .4rem; }
+    .ap-stat-value { font-size: 1.1rem; }
     .ap-growth { display: none; }
 
     .ap-topbar-sub { display: none; }
 
     .ap-search input::placeholder { font-size: .78rem; }
 
-    .ap-table td::before { min-width: 65px; font-size: .65rem; }
+    .ap-table td::before { min-width: 90px; font-size: .62rem; }
 
     /* Login */
     .admin-login-box { padding: 2rem 1.5rem; border-radius: 20px; }
