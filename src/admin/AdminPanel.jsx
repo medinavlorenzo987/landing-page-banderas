@@ -65,6 +65,7 @@ function PedidosSection({ orders, loading, onRefresh, onLogout }) {
     const [filter, setFilter]       = useState('todos');
     const [search, setSearch]       = useState('');
     const [updating, setUpdating]   = useState(null);
+    const [emitting, setEmitting]   = useState(null);
     const [selected, setSelected]   = useState([]);
 
     const filtered = orders.filter(o => {
@@ -88,6 +89,24 @@ function PedidosSection({ orders, loading, onRefresh, onLogout }) {
         const { error } = await supabase.from('ventas').update({ estado }).eq('id', id);
         if (!error) onRefresh();
         setUpdating(null);
+    };
+
+    const emitirBoleta = async (id) => {
+        if (!window.confirm("¿Seguro que deseas emitir una boleta electrónica para este pedido? Esta acción es irreversible en Nubefact.")) return;
+        setEmitting(id);
+        try {
+            const { data, error } = await supabase.functions.invoke('emitir-boleta', {
+                body: { orderId: id }
+            });
+            if (error) throw error;
+            if (data?.error) throw new Error(data.error);
+            onRefresh();
+        } catch (err) {
+            console.error("Error emitiendo boleta:", err);
+            alert("Error al emitir boleta: " + err.message);
+        } finally {
+            setEmitting(null);
+        }
     };
 
     const handleExport = () => {
@@ -210,6 +229,7 @@ function PedidosSection({ orders, loading, onRefresh, onLogout }) {
                                 <th>Producto</th>
                                 <th>Doc.</th>
                                 <th>Total</th>
+                                <th>Comprobante</th>
                                 <th>Estado</th>
                             </tr>
                         </thead>
@@ -244,6 +264,21 @@ function PedidosSection({ orders, loading, onRefresh, onLogout }) {
                                         <td className="td-prod" data-label="Producto">{order.producto || '—'}</td>
                                         <td className="td-qty" data-label="Docenas">{order.cantidad_docenas ?? '—'}</td>
                                         <td className="td-total" data-label="Total">S/ {(order.total_soles || 0).toFixed(2)}</td>
+                                        <td data-label="Comprobante">
+                                            {order.comprobante_url ? (
+                                                <a href={order.comprobante_url} target="_blank" rel="noopener noreferrer" className="ap-btn-success">
+                                                    Ver PDF
+                                                </a>
+                                            ) : (
+                                                <button 
+                                                    className="ap-btn-danger" 
+                                                    onClick={() => emitirBoleta(order.id)}
+                                                    disabled={emitting === order.id}
+                                                >
+                                                    {emitting === order.id ? 'Emitiendo...' : 'Emitir Boleta'}
+                                                </button>
+                                            )}
+                                        </td>
                                         <td data-label="Estado">
                                             <select
                                                 className="ap-estado-select"

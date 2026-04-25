@@ -197,6 +197,23 @@ body { font-family: 'Inter', 'Poppins', sans-serif; background: #F1F5F9; color: 
 }
 .ap-btn-export:hover { opacity: .9; transform: translateY(-1px); }
 
+/* Botones de comprobante */
+.ap-btn-danger {
+    background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA;
+    padding: .4rem .8rem; border-radius: 8px; font-size: .75rem; font-weight: 700;
+    cursor: pointer; transition: all .2s; font-family: inherit; white-space: nowrap;
+}
+.ap-btn-danger:hover:not(:disabled) { background: #DC2626; color: #fff; border-color: #DC2626; }
+.ap-btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.ap-btn-success {
+    display: inline-block;
+    background: #ECFDF5; color: #059669; border: 1px solid #A7F3D0;
+    padding: .4rem .8rem; border-radius: 8px; font-size: .75rem; font-weight: 700;
+    text-decoration: none; transition: all .2s; font-family: inherit; white-space: nowrap;
+}
+.ap-btn-success:hover { background: #059669; color: #fff; border-color: #059669; }
+
 /* ── Table card ─────────────────────────────────────────────────── */
 .ap-table-card {
     background: #fff; border-radius: 16px;
