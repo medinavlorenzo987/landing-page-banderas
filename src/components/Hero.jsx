@@ -2,7 +2,7 @@ export default function Hero() {
     return (
         <section className="hero">
             <div className="hero-content">
-                <span className="hero-eyebrow">Campaña Fiestas Patrias 2025</span>
+                <span className="hero-eyebrow">Campaña Fiestas Patrias 2026</span>
                 <h1>El Orgullo de <span>ser Peruano</span></h1>
                 <p>Banderas premium de la más alta calidad, medidas oficiales normadas y listas para lucir con orgullo en todo el Perú.</p>
                 <a href="#catalogo" className="btn-primary">
