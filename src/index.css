@@ -2990,6 +2990,29 @@ header {
     opacity: 0.65;
 }
 
+/* ── Toggle Persona / Empresa ─────────────────────────────────── */
+.modal-type-toggle {
+    display: flex;
+    gap: .5rem;
+    margin-bottom: 1rem;
+}
+.modal-type-btn {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center; gap: .4rem;
+    padding: .55rem .75rem;
+    border: 2px solid #E5E7EB; border-radius: 10px;
+    background: #F9FAFB; color: #6B7280;
+    font-size: .8rem; font-weight: 600; cursor: pointer;
+    transition: all .18s;
+    font-family: inherit;
+}
+.modal-type-btn:hover { border-color: #D1D5DB; color: #374151; }
+.modal-type-btn.active {
+    border-color: #CC1B1B;
+    background: #FFF5F5;
+    color: #CC1B1B;
+}
+
 /* ── Botón-como-link en Cookie Banner ─────────────────────────── */
 .cookie-link-btn {
     background: none;

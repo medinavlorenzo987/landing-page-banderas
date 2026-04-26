@@ -62,6 +62,110 @@ function exportToCSV(rows) {
     URL.revokeObjectURL(url);
 }
 
+/* ─── Modal Emitir Comprobante ──────────────────────────── */
+function EmitirModal({ group, onClose, onEmitir, emitting }) {
+    const [tipo, setTipo]             = useState(group.ruc ? 'factura' : 'boleta');
+    const [ruc, setRuc]               = useState(group.ruc || '');
+    const [razonSocial, setRazonSocial] = useState(group.razon_social || group.nombre || '');
+    const [error, setError]           = useState('');
+
+    useEffect(() => {
+        const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
+        window.addEventListener('keydown', handleKey);
+        return () => window.removeEventListener('keydown', handleKey);
+    }, [onClose]);
+
+    const handleEmitir = () => {
+        setError('');
+        if (tipo === 'factura') {
+            if (!/^\d{11}$/.test(ruc.replace(/\D/g,''))) { setError('RUC debe tener 11 dígitos'); return; }
+            if (!razonSocial.trim()) { setError('Ingresa la Razón Social'); return; }
+        }
+        onEmitir({ tipo, ruc: ruc.replace(/\D/g,''), razonSocial: razonSocial.trim() });
+    };
+
+    return (
+        <div className="ap-modal-backdrop" onClick={onClose}>
+            <div className="ap-modal ap-modal--sm" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+                <div className="ap-modal-header">
+                    <div>
+                        <h2 className="ap-modal-title">Emitir Comprobante</h2>
+                        <p className="ap-modal-sub">{group.nombre} · S/ {group.total.toFixed(2)}</p>
+                    </div>
+                    <button className="ap-modal-close" onClick={onClose} aria-label="Cerrar">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Tipo selector */}
+                <div className="ap-emit-tipo-row">
+                    <button
+                        type="button"
+                        className={`ap-emit-tipo-btn ${tipo === 'boleta' ? 'active' : ''}`}
+                        onClick={() => setTipo('boleta')}
+                    >
+                        Boleta
+                    </button>
+                    <button
+                        type="button"
+                        className={`ap-emit-tipo-btn ${tipo === 'factura' ? 'active' : ''}`}
+                        onClick={() => setTipo('factura')}
+                    >
+                        Factura
+                    </button>
+                </div>
+
+                {tipo === 'factura' && (
+                    <div className="ap-modal-form" style={{ paddingTop: '1rem' }}>
+                        <div className="ap-modal-field ap-modal-full">
+                            <label>RUC</label>
+                            <input
+                                type="text"
+                                maxLength={11}
+                                value={ruc}
+                                onChange={e => setRuc(e.target.value.replace(/\D/g,''))}
+                                placeholder="20123456789"
+                            />
+                        </div>
+                        <div className="ap-modal-field ap-modal-full">
+                            <label>Razón Social</label>
+                            <input
+                                type="text"
+                                value={razonSocial}
+                                onChange={e => setRazonSocial(e.target.value)}
+                                placeholder="EMPRESA S.A.C."
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* Resumen del pedido */}
+                <div className="ap-emit-summary">
+                    {group.items.map((item, i) => (
+                        <div key={i} className="ap-emit-summary-row">
+                            <span>{item.cantidad_docenas}× {item.producto}</span>
+                            <span>S/ {(item.total_soles || 0).toFixed(2)}</span>
+                        </div>
+                    ))}
+                </div>
+
+                {error && <p className="ap-modal-error">{error}</p>}
+
+                <div className="ap-modal-actions">
+                    <button type="button" className="ap-modal-btn-cancel" onClick={onClose} disabled={emitting}>
+                        Cancelar
+                    </button>
+                    <button type="button" className="ap-modal-btn-save" onClick={handleEmitir} disabled={emitting}>
+                        {emitting ? 'Emitiendo...' : `Emitir ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 /* ─── Modal de Edición de Grupo (multi-producto) ───────── */
 function GroupEditModal({ group, onClose, onSaved }) {
     const [form, setForm] = useState({
@@ -295,6 +399,7 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
     const [selected, setSelected]         = useState([]);
     const [editOrder, setEditOrder]       = useState(null);
     const [editGroup, setEditGroup]       = useState(null);
+    const [emitirGroup, setEmitirGroup]   = useState(null);
     const [vistaGrafico, setVistaGrafico] = useState('dia');
     const [pendingNotif, setPendingNotif] = useState(null);
 
@@ -306,13 +411,15 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
             if (!groups[key]) {
                 groups[key] = {
                     key,
-                    hasPedidoId: !!o.pedido_id,
-                    pedido_id:   o.pedido_id,
-                    nombre:      o.nombre,
-                    dni:         o.dni,
-                    direccion:   o.direccion,
-                    telefono:    o.telefono,
-                    estado:      o.estado || 'pendiente',
+                    hasPedidoId:  !!o.pedido_id,
+                    pedido_id:    o.pedido_id,
+                    nombre:       o.nombre,
+                    dni:          o.dni,
+                    ruc:          o.ruc,
+                    razon_social: o.razon_social,
+                    direccion:    o.direccion,
+                    telefono:     o.telefono,
+                    estado:       o.estado || 'pendiente',
                     fecha_creacion: o.fecha_creacion,
                     items: [],
                     ids:   [],
@@ -382,14 +489,15 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
         setUpdating(null);
     };
 
-    const emitirBoleta = async (group) => {
-        if (!window.confirm("¿Seguro que deseas emitir una boleta electrónica? Esta acción es irreversible en Nubefact.")) return;
+    const emitirComprobante = async ({ tipo, ruc, razonSocial }) => {
+        const group = emitirGroup;
         setEmitting(group.key);
         try {
-            // Pasa pedidoId para multi-producto → una sola boleta con todos los ítems
-            const body = group.hasPedidoId
-                ? { pedidoId: group.pedido_id }
-                : { orderId: group.items[0].id };
+            const body = {
+                ...(group.hasPedidoId ? { pedidoId: group.pedido_id } : { orderId: group.items[0].id }),
+                tipoComprobante: tipo,
+                ...(tipo === 'factura' ? { ruc, razonSocial } : {}),
+            };
             const { data, error } = await supabase.functions.invoke('emitir-boleta', { body });
             if (error) throw error;
             if (data?.error) throw new Error(data.error);
@@ -400,8 +508,9 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
                         : o
                 ));
             }
+            setEmitirGroup(null);
         } catch (err) {
-            alert("Error al emitir boleta: " + err.message);
+            alert("Error al emitir comprobante: " + err.message);
         } finally {
             setEmitting(null);
         }
@@ -453,6 +562,14 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
             )}
             {editGroup && (
                 <GroupEditModal group={editGroup} onClose={() => setEditGroup(null)} onSaved={handleGroupSaved} />
+            )}
+            {emitirGroup && (
+                <EmitirModal
+                    group={emitirGroup}
+                    onClose={() => setEmitirGroup(null)}
+                    onEmitir={emitirComprobante}
+                    emitting={emitting === emitirGroup.key}
+                />
             )}
 
             {/* WA Toast */}
@@ -570,7 +687,7 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
                                 <th><input type="checkbox" className="ap-checkbox" checked={allChecked} onChange={toggleAll} /></th>
                                 <th>Fecha</th>
                                 <th>Cliente</th>
-                                <th>DNI</th>
+                                <th>Doc.</th>
                                 <th>Dirección</th>
                                 <th>Productos</th>
                                 <th>Total</th>
@@ -602,7 +719,11 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
                                         </td>
                                         <td className="td-fecha"  data-label="Fecha">{fecha}</td>
                                         <td className="td-nombre" data-label="Cliente">{group.nombre || '—'}</td>
-                                        <td className="td-dni"    data-label="DNI">{group.dni || '—'}</td>
+                                        <td className="td-dni" data-label="Doc.">
+                                            {group.ruc
+                                                ? <span className="ap-doc-ruc">RUC {group.ruc}</span>
+                                                : (group.dni || '—')}
+                                        </td>
                                         <td className="td-dir"    data-label="Dirección">{group.direccion || '—'}</td>
                                         <td data-label="Productos">
                                             {group.items.map((item, i) => (
@@ -615,12 +736,16 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
                                         <td className="td-total" data-label="Total">S/ {group.total.toFixed(2)}</td>
                                         <td data-label="Comprobante">
                                             {compUrl ? (
-                                                <a href={compUrl} target="_blank" rel="noopener noreferrer" className="ap-btn-success">Ver PDF</a>
+                                                <a href={compUrl} target="_blank" rel="noopener noreferrer" className="ap-btn-success">
+                                                    Ver PDF
+                                                </a>
                                             ) : (
-                                                <button className="ap-btn-danger"
-                                                    onClick={() => emitirBoleta(group)}
-                                                    disabled={emitting === group.key}>
-                                                    {emitting === group.key ? 'Emitiendo...' : 'Emitir Boleta'}
+                                                <button
+                                                    className="ap-btn-danger"
+                                                    onClick={() => setEmitirGroup(group)}
+                                                    disabled={emitting === group.key}
+                                                >
+                                                    {emitting === group.key ? 'Emitiendo...' : (group.ruc ? 'Emitir Factura' : 'Emitir Boleta')}
                                                 </button>
                                             )}
                                         </td>

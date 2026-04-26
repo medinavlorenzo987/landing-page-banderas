@@ -12,11 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    console.log("=== INICIO DE EMISIÓN DE BOLETA ===");
+    console.log("=== INICIO EMISIÓN COMPROBANTE (ApiSunat) ===");
 
     const bodyText = await req.text();
-    console.log("Body recibido:", bodyText);
-
     let bodyJson: any;
     try {
       bodyJson = JSON.parse(bodyText);
@@ -24,13 +22,16 @@ serve(async (req) => {
       throw new Error(`Error parseando JSON: ${e.message}`);
     }
 
-    // Acepta pedidoId (multi-producto) u orderId (single, retrocompatible)
-    const { pedidoId, orderId } = bodyJson;
-    if (!pedidoId && !orderId) {
-      throw new Error("Se requiere pedidoId o orderId en el body.");
-    }
+    const {
+      pedidoId,
+      orderId,
+      tipoComprobante = 'boleta',
+      ruc,
+      razonSocial,
+    } = bodyJson;
 
-    // Inicializar Supabase
+    if (!pedidoId && !orderId) throw new Error("Se requiere pedidoId o orderId en el body.");
+
     const supabaseUrl     = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
     const authHeader      = req.headers.get('Authorization');
@@ -42,45 +43,46 @@ serve(async (req) => {
     // Consultar filas del pedido
     let rows: any[];
     if (pedidoId) {
-      console.log("Consultando por pedido_id:", pedidoId);
-      const { data, error } = await supabase
-        .from('ventas')
-        .select('*')
-        .eq('pedido_id', pedidoId);
+      const { data, error } = await supabase.from('ventas').select('*').eq('pedido_id', pedidoId);
       if (error) throw new Error(`Error Supabase: ${error.message}`);
       if (!data || data.length === 0) throw new Error("No se encontró el pedido.");
       rows = data;
     } else {
-      console.log("Consultando por id:", orderId);
-      const { data, error } = await supabase
-        .from('ventas')
-        .select('*')
-        .eq('id', orderId)
-        .single();
+      const { data, error } = await supabase.from('ventas').select('*').eq('id', orderId).single();
       if (error) throw new Error(`Error Supabase: ${error.message}`);
       if (!data) throw new Error("No se encontró el pedido.");
       rows = [data];
     }
 
-    console.log(`Filas encontradas: ${rows.length}`);
-
     if (rows.some((r: any) => r.comprobante_url)) {
       throw new Error("Este pedido ya tiene un comprobante emitido.");
     }
 
-    // Datos del cliente (compartidos, se toman de la primera fila)
-    const cliente     = rows[0];
-    const clienteDni  = (cliente.dni ?? '').replace(/\D/g, '');
-    const esDniValido = clienteDni.length === 8;
-    const tipoDoc     = esDniValido ? "1" : "-";
-    const numeroDoc   = esDniValido ? clienteDni : "00000000";
+    const firstRow  = rows[0];
+    const esFactura = tipoComprobante === 'factura';
 
-    // Totales globales del pedido
+    // Serie y número — ID de la primera fila, único por pedido
+    const serie  = esFactura ? 'F001' : 'B001';
+    const numero = firstRow.id;
+
+    // Datos del cliente
+    const clienteRuc    = (ruc || firstRow.ruc || '').replace(/\D/g, '');
+    const clienteDni    = (firstRow.dni ?? '').replace(/\D/g, '');
+    const clienteNombre = esFactura
+      ? (razonSocial || firstRow.razon_social || firstRow.nombre || 'EMPRESA')
+      : (firstRow.nombre || 'CLIENTE VARIOS');
+    const clienteDir    = firstRow.direccion || '';
+
+    const clienteTipoDoc = esFactura
+      ? '6'
+      : (clienteDni.length === 8 ? '1' : '0');
+    const clienteNumDoc  = esFactura
+      ? clienteRuc
+      : (clienteDni.length === 8 ? clienteDni : '00000000');
+
+    // Totales y fecha
     const totalSoles = rows.reduce((s: number, r: any) => s + (parseFloat(r.total_soles) || 0), 0);
-    const valorVenta = totalSoles / 1.18;
-    const totalIgv   = totalSoles - valorVenta;
 
-    // Fecha Lima (GMT-5)
     const formatter = new Intl.DateTimeFormat('es-PE', {
       timeZone: 'America/Lima',
       year: 'numeric', month: '2-digit', day: '2-digit',
@@ -88,139 +90,97 @@ serve(async (req) => {
     const parts    = formatter.formatToParts(new Date());
     const limaDate = `${parts.find(p => p.type === 'year')?.value}-${parts.find(p => p.type === 'month')?.value}-${parts.find(p => p.type === 'day')?.value}`;
 
-    // Construir items de Nubefact — uno por cada producto del pedido
-    const items = rows.map((r: any, idx: number) => {
-      const itemTotal      = parseFloat(r.total_soles) || 0;
-      const itemValorVenta = itemTotal / 1.18;
-      const itemIgv        = itemTotal - itemValorVenta;
-      const cantidad       = parseFloat(r.cantidad_docenas) || 1;
+    // Items — uno por cada fila del pedido
+    const items = rows.map((r: any) => {
+      const itemTotal     = parseFloat(r.total_soles) || 0;
+      const cantidad      = parseFloat(r.cantidad_docenas) || 1;
+      const valorUnitario = (itemTotal / 1.18) / cantidad;
       return {
-        unidad_de_medida:          "NIU",
-        codigo:                    `P00${idx + 1}`,
-        descripcion:               r.producto || "Bandera Peruana",
-        cantidad,
-        valor_unitario:            (itemValorVenta / cantidad).toFixed(2),
-        precio_unitario:           (itemTotal / cantidad).toFixed(2),
-        descuento:                 "",
-        subtotal:                  itemValorVenta.toFixed(2),
-        tipo_de_igv:               1,
-        igv:                       itemIgv.toFixed(2),
-        total:                     itemTotal.toFixed(2),
-        anticipo_regularizacion:   "false",
-        anticipo_documento_serie:  "",
-        anticipo_documento_numero: "",
+        unidad_de_medida:           "NIU",
+        descripcion:                r.producto || "Bandera Peruana",
+        cantidad:                   String(cantidad),
+        valor_unitario:             valorUnitario.toFixed(6),
+        porcentaje_igv:             "18",
+        codigo_tipo_afectacion_igv: "10",
+        nombre_tributo:             "IGV",
       };
     });
 
-    const codigoUnico = pedidoId ?? orderId.toString();
-
-    const boletaData = {
-      operacion:                         "generar_comprobante",
-      tipo_de_comprobante:               2,
-      serie:                             "BBB1",
-      numero:                            "auto",
-      sunat_transaction:                 1,
-      cliente_tipo_de_documento:         tipoDoc,
-      cliente_numero_de_documento:       numeroDoc,
-      cliente_denominacion:              cliente.nombre || "CLIENTE VARIOS",
-      cliente_direccion:                 cliente.direccion || "",
-      cliente_email:                     "",
-      cliente_email_1:                   "",
-      cliente_email_2:                   "",
-      fecha_de_emision:                  limaDate,
-      fecha_de_vencimiento:              "",
-      moneda:                            1,
-      tipo_de_cambio:                    "",
-      porcentaje_de_igv:                 18.00,
-      descuento_global:                  "",
-      total_descuento:                   "",
-      total_anticipo:                    "",
-      total_gravada:                     valorVenta.toFixed(2),
-      total_inafecta:                    "",
-      total_exonerada:                   "",
-      total_igv:                         totalIgv.toFixed(2),
-      total_gratuita:                    "",
-      total_otros_cargos:                "",
-      total:                             totalSoles.toFixed(2),
-      percepcion_tipo:                   "",
-      percepcion_base_imponible:         "",
-      total_percepcion:                  "",
-      total_incluido_percepcion:         "",
-      detraccion:                        "false",
-      observaciones:                     "",
-      documento_que_se_modifica_tipo:    "",
-      documento_que_se_modifica_serie:   "",
-      documento_que_se_modifica_numero:  "",
-      tipo_de_nota_de_credito:           "",
-      tipo_de_nota_de_debito:            "",
-      enviar_automaticamente_a_la_sunat: "true",
-      enviar_automaticamente_al_cliente: "false",
-      codigo_unico:                      codigoUnico,
-      condiciones_de_pago:               "",
-      medio_de_pago:                     "",
-      placa_vehiculo:                    "",
-      orden_compra_servicio:             "",
-      tabla_personalizada_codigo:        "",
-      formato_de_pdf:                    "",
+    const comprobanteData = {
+      documento:                   esFactura ? 'factura' : 'boleta',
+      serie,
+      numero,
+      fecha_de_emision:            limaDate,
+      moneda:                      'PEN',
+      tipo_operacion:              '0101',
+      cliente_tipo_de_documento:   clienteTipoDoc,
+      cliente_numero_de_documento: clienteNumDoc,
+      cliente_denominacion:        clienteNombre,
+      cliente_direccion:           clienteDir,
       items,
+      total:                       totalSoles.toFixed(2),
     };
 
-    console.log("Enviando a Nubefact:", JSON.stringify(boletaData, null, 2));
+    console.log("Enviando a ApiSunat:", JSON.stringify(comprobanteData, null, 2));
 
-    const nubefactUrl   = Deno.env.get('NUBEFACT_RUTA');
-    const nubefactToken = Deno.env.get('NUBEFACT_TOKEN');
-    if (!nubefactUrl || !nubefactToken) {
-      throw new Error("Faltan NUBEFACT_RUTA o NUBEFACT_TOKEN en los secrets de Supabase.");
-    }
+    const apisunatUrl   = Deno.env.get('APISUNAT_URL') ?? 'https://sandbox.apisunat.pe';
+    const apisunatToken = Deno.env.get('APISUNAT_TOKEN');
+    if (!apisunatToken) throw new Error("Falta APISUNAT_TOKEN en los secrets de Supabase.");
 
-    const nubefactResponse = await fetch(nubefactUrl, {
-      method: "POST",
+    const response = await fetch(`${apisunatUrl}/api/v3/documents`, {
+      method: 'POST',
       headers: {
-        "Authorization": `Token token="${nubefactToken}"`,
-        "Content-Type": "application/json",
+        'Authorization': `Bearer ${apisunatToken}`,
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(boletaData),
+      body: JSON.stringify(comprobanteData),
     });
 
-    const nubefactResultText = await nubefactResponse.text();
-    console.log("Respuesta Nubefact:", nubefactResponse.status, nubefactResultText);
+    const resultText = await response.text();
+    console.log("Respuesta ApiSunat:", response.status, resultText);
 
-    let nubefactResult: any;
+    let result: any;
     try {
-      nubefactResult = JSON.parse(nubefactResultText);
+      result = JSON.parse(resultText);
     } catch {
-      throw new Error(`Nubefact respuesta no-JSON (${nubefactResponse.status}): ${nubefactResultText}`);
+      throw new Error(`ApiSunat respuesta no-JSON (${response.status}): ${resultText}`);
     }
 
-    if (!nubefactResponse.ok || nubefactResult.errors) {
-      throw new Error(`Error Nubefact: ${nubefactResult.errors || JSON.stringify(nubefactResult)}`);
+    if (!response.ok || !result.success) {
+      throw new Error(`Error ApiSunat: ${result.message || JSON.stringify(result)}`);
     }
 
-    const comprobanteUrl = nubefactResult.enlace_del_pdf;
-    if (!comprobanteUrl) {
-      throw new Error("Nubefact no devolvió 'enlace_del_pdf'.");
+    const comprobanteUrl = result.payload?.pdf?.ticket || result.payload?.pdf?.a4;
+    if (!comprobanteUrl) throw new Error("ApiSunat no devolvió URL del PDF.");
+
+    // Actualizar todas las filas del pedido
+    const updatePayload: any = {
+      comprobante_url:  comprobanteUrl,
+      comprobante_tipo: tipoComprobante,
+      estado:           'pagado',
+    };
+    if (esFactura && clienteRuc) {
+      updatePayload.ruc          = clienteRuc;
+      updatePayload.razon_social = clienteNombre;
     }
 
-    // Actualizar TODAS las filas del pedido con la URL del comprobante
     const { error: updateError } = pedidoId
-      ? await supabase.from('ventas').update({ comprobante_url: comprobanteUrl, estado: 'pagado' }).eq('pedido_id', pedidoId)
-      : await supabase.from('ventas').update({ comprobante_url: comprobanteUrl, estado: 'pagado' }).eq('id', orderId);
+      ? await supabase.from('ventas').update(updatePayload).eq('pedido_id', pedidoId)
+      : await supabase.from('ventas').update(updatePayload).eq('id', orderId);
 
-    if (updateError) {
-      throw new Error(`Boleta generada pero falló al guardar en Supabase: ${updateError.message}`);
-    }
+    if (updateError) throw new Error(`Comprobante generado pero falló al guardar: ${updateError.message}`);
 
     console.log("=== COMPLETADO ===");
     return new Response(
-      JSON.stringify({ success: true, comprobante_url: comprobanteUrl }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 },
+      JSON.stringify({ success: true, comprobante_url: comprobanteUrl, tipo: tipoComprobante }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 },
     );
 
   } catch (error: any) {
     console.error("ERROR:", error.message);
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 },
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 },
     );
   }
 });

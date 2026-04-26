@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
 export default function CartModal({ cart, onClose, onConfirm, onOpenLegal, onUpdateQuantity, onRemoveItem }) {
-    const [form, setForm] = useState({ name: '', dni: '', address: '', phone: '' });
+    const [form, setForm] = useState({ name: '', dni: '', ruc: '', razonSocial: '', address: '', phone: '' });
+    const [esEmpresa, setEsEmpresa] = useState(false);
     const [errors, setErrors] = useState({});
     const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -11,13 +12,17 @@ export default function CartModal({ cart, onClose, onConfirm, onOpenLegal, onUpd
         return () => { document.body.style.overflow = ''; };
     }, []);
 
-    // Total se recalcula en cada render gracias al cart reactivo de App
     const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     const validate = () => {
         const e = {};
-        if (!form.name.trim()) e.name = 'Ingresa tu nombre';
-        if (!/^\d{8}$/.test(form.dni)) e.dni = 'DNI debe tener 8 dígitos';
+        if (esEmpresa) {
+            if (!form.razonSocial.trim()) e.razonSocial = 'Ingresa la Razón Social';
+            if (!/^\d{11}$/.test(form.ruc)) e.ruc = 'RUC debe tener 11 dígitos';
+        } else {
+            if (!form.name.trim()) e.name = 'Ingresa tu nombre';
+            if (!/^\d{8}$/.test(form.dni)) e.dni = 'DNI debe tener 8 dígitos';
+        }
         if (!form.address.trim()) e.address = 'Ingresa tu dirección';
         if (!termsAccepted) e.terms = 'Debes aceptar los Términos y la Política de Privacidad para continuar';
         return e;
@@ -33,18 +38,25 @@ export default function CartModal({ cart, onClose, onConfirm, onOpenLegal, onUpd
         const pedidoId = crypto.randomUUID();
         supabase.from('ventas').insert(
             cart.map(item => ({
-                pedido_id: pedidoId,
-                producto: item.name,
+                pedido_id:        pedidoId,
+                producto:         item.name,
                 cantidad_docenas: item.quantity,
-                total_soles: item.price * item.quantity,
-                nombre: form.name,
-                dni: form.dni,
-                direccion: form.address,
-                telefono: form.phone || null,
+                total_soles:      item.price * item.quantity,
+                nombre:           esEmpresa ? form.razonSocial : form.name,
+                dni:              esEmpresa ? null : form.dni,
+                ruc:              esEmpresa ? form.ruc : null,
+                razon_social:     esEmpresa ? form.razonSocial : null,
+                direccion:        form.address,
+                telefono:         form.phone || null,
             }))
         ).then(({ error }) => {
             if (error) console.error('Error al registrar pedido:', error);
         });
+    };
+
+    const handleTipoChange = (tipo) => {
+        setEsEmpresa(tipo === 'empresa');
+        setErrors({});
     };
 
     const isEmpty = cart.length === 0;
@@ -83,51 +95,32 @@ export default function CartModal({ cart, onClose, onConfirm, onOpenLegal, onUpd
                         <div className="modal-items">
                             {cart.map((item) => (
                                 <div key={item.name} className="modal-item">
-
-                                    {/* Nombre del producto */}
                                     <span className="modal-item-name">{item.name}</span>
-
-                                    {/* Controles de cantidad [ - ] N [ + ] */}
                                     <div className="modal-item-qty-ctrl">
                                         <button
                                             type="button"
                                             className="qty-btn"
                                             onClick={() => {
-                                                if (item.quantity <= 1) {
-                                                    onRemoveItem(item.name);
-                                                    return;
-                                                }
+                                                if (item.quantity <= 1) { onRemoveItem(item.name); return; }
                                                 onUpdateQuantity(item.name, -1);
                                             }}
-                                            aria-label={item.quantity <= 1
-                                                ? `Eliminar ${item.name} del carrito`
-                                                : `Reducir cantidad de ${item.name}`}
+                                            aria-label={item.quantity <= 1 ? `Eliminar ${item.name}` : `Reducir cantidad de ${item.name}`}
                                             title={item.quantity <= 1 ? 'Eliminar producto' : 'Reducir cantidad'}
-                                        >
-                                            −
-                                        </button>
+                                        >−</button>
                                         <span className="qty-value">{item.quantity}</span>
                                         <button
                                             type="button"
                                             className="qty-btn"
                                             onClick={() => onUpdateQuantity(item.name, +1)}
                                             aria-label={`Aumentar cantidad de ${item.name}`}
-                                        >
-                                            +
-                                        </button>
+                                        >+</button>
                                     </div>
-
-                                    {/* Subtotal */}
-                                    <span className="modal-item-price">
-                                        S/ {(item.price * item.quantity).toFixed(2)}
-                                    </span>
-
-                                    {/* Botón eliminar (papelera) */}
+                                    <span className="modal-item-price">S/ {(item.price * item.quantity).toFixed(2)}</span>
                                     <button
                                         type="button"
                                         className="modal-item-remove"
                                         onClick={() => onRemoveItem(item.name)}
-                                        aria-label={`Eliminar ${item.name} del carrito`}
+                                        aria-label={`Eliminar ${item.name}`}
                                         title="Eliminar producto"
                                     >
                                         <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,8 +130,6 @@ export default function CartModal({ cart, onClose, onConfirm, onOpenLegal, onUpd
                                     </button>
                                 </div>
                             ))}
-
-                            {/* Total dinámico */}
                             <div className="modal-total">
                                 <span>Total</span>
                                 <span>S/ {total.toFixed(2)}</span>
@@ -149,32 +140,88 @@ export default function CartModal({ cart, onClose, onConfirm, onOpenLegal, onUpd
                         <form className="modal-form" onSubmit={handleSubmit} noValidate>
                             <h3 className="modal-form-title">Datos de entrega</h3>
 
-                            <div className="modal-field">
-                                <label htmlFor="modal-name">Nombre completo</label>
-                                <input
-                                    id="modal-name"
-                                    type="text"
-                                    placeholder="Ej: Juan Pérez García"
-                                    value={form.name}
-                                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                    className={errors.name ? 'input-error' : ''}
-                                />
-                                {errors.name && <span className="field-error">{errors.name}</span>}
+                            {/* Toggle Persona / Empresa */}
+                            <div className="modal-type-toggle">
+                                <button
+                                    type="button"
+                                    className={`modal-type-btn ${!esEmpresa ? 'active' : ''}`}
+                                    onClick={() => handleTipoChange('persona')}
+                                >
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                    Persona (Boleta)
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`modal-type-btn ${esEmpresa ? 'active' : ''}`}
+                                    onClick={() => handleTipoChange('empresa')}
+                                >
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                    </svg>
+                                    Empresa (Factura)
+                                </button>
                             </div>
 
-                            <div className="modal-field">
-                                <label htmlFor="modal-dni">DNI</label>
-                                <input
-                                    id="modal-dni"
-                                    type="text"
-                                    placeholder="12345678"
-                                    maxLength={8}
-                                    value={form.dni}
-                                    onChange={(e) => setForm({ ...form, dni: e.target.value.replace(/\D/g, '') })}
-                                    className={errors.dni ? 'input-error' : ''}
-                                />
-                                {errors.dni && <span className="field-error">{errors.dni}</span>}
-                            </div>
+                            {/* Campos según tipo */}
+                            {esEmpresa ? (
+                                <>
+                                    <div className="modal-field">
+                                        <label htmlFor="modal-razon">Razón Social</label>
+                                        <input
+                                            id="modal-razon"
+                                            type="text"
+                                            placeholder="Ej: Mi Empresa S.A.C."
+                                            value={form.razonSocial}
+                                            onChange={(e) => setForm({ ...form, razonSocial: e.target.value })}
+                                            className={errors.razonSocial ? 'input-error' : ''}
+                                        />
+                                        {errors.razonSocial && <span className="field-error">{errors.razonSocial}</span>}
+                                    </div>
+                                    <div className="modal-field">
+                                        <label htmlFor="modal-ruc">RUC</label>
+                                        <input
+                                            id="modal-ruc"
+                                            type="text"
+                                            placeholder="20123456789"
+                                            maxLength={11}
+                                            value={form.ruc}
+                                            onChange={(e) => setForm({ ...form, ruc: e.target.value.replace(/\D/g, '') })}
+                                            className={errors.ruc ? 'input-error' : ''}
+                                        />
+                                        {errors.ruc && <span className="field-error">{errors.ruc}</span>}
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="modal-field">
+                                        <label htmlFor="modal-name">Nombre completo</label>
+                                        <input
+                                            id="modal-name"
+                                            type="text"
+                                            placeholder="Ej: Juan Pérez García"
+                                            value={form.name}
+                                            onChange={(e) => setForm({ ...form, name: e.target.value })}
+                                            className={errors.name ? 'input-error' : ''}
+                                        />
+                                        {errors.name && <span className="field-error">{errors.name}</span>}
+                                    </div>
+                                    <div className="modal-field">
+                                        <label htmlFor="modal-dni">DNI</label>
+                                        <input
+                                            id="modal-dni"
+                                            type="text"
+                                            placeholder="12345678"
+                                            maxLength={8}
+                                            value={form.dni}
+                                            onChange={(e) => setForm({ ...form, dni: e.target.value.replace(/\D/g, '') })}
+                                            className={errors.dni ? 'input-error' : ''}
+                                        />
+                                        {errors.dni && <span className="field-error">{errors.dni}</span>}
+                                    </div>
+                                </>
+                            )}
 
                             <div className="modal-field">
                                 <label htmlFor="modal-address">Dirección de entrega</label>
@@ -219,9 +266,7 @@ export default function CartModal({ cart, onClose, onConfirm, onOpenLegal, onUpd
                                         checked={termsAccepted}
                                         onChange={(e) => {
                                             setTermsAccepted(e.target.checked);
-                                            if (e.target.checked) {
-                                                setErrors(prev => ({ ...prev, terms: undefined }));
-                                            }
+                                            if (e.target.checked) setErrors(prev => ({ ...prev, terms: undefined }));
                                         }}
                                         aria-required="true"
                                     />
@@ -238,9 +283,7 @@ export default function CartModal({ cart, onClose, onConfirm, onOpenLegal, onUpd
                                         </button>.
                                     </span>
                                 </label>
-                                {errors.terms && (
-                                    <span className="field-error" role="alert">{errors.terms}</span>
-                                )}
+                                {errors.terms && <span className="field-error" role="alert">{errors.terms}</span>}
                             </div>
 
                             {/* ── BOTÓN ENVIAR ── */}
