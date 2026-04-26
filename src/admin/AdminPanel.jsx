@@ -62,6 +62,106 @@ function exportToCSV(rows) {
     URL.revokeObjectURL(url);
 }
 
+/* ─── Modal de Edición de Grupo (multi-producto) ───────── */
+function GroupEditModal({ group, onClose, onSaved }) {
+    const [form, setForm] = useState({
+        nombre:    group.nombre    || '',
+        dni:       group.dni       || '',
+        direccion: group.direccion || '',
+        telefono:  group.telefono  || '',
+    });
+    const [saving, setSaving] = useState(false);
+    const [error, setError]   = useState('');
+
+    useEffect(() => {
+        const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
+        window.addEventListener('keydown', handleKey);
+        return () => window.removeEventListener('keydown', handleKey);
+    }, [onClose]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        setError('');
+        const payload = {
+            nombre:    form.nombre.trim(),
+            dni:       form.dni.trim(),
+            direccion: form.direccion.trim(),
+            telefono:  form.telefono.trim() || null,
+        };
+        const { error: supaErr } = group.hasPedidoId
+            ? await supabase.from('ventas').update(payload).eq('pedido_id', group.pedido_id)
+            : await supabase.from('ventas').update(payload).in('id', group.ids);
+        if (supaErr) {
+            setError('Error al guardar: ' + supaErr.message);
+            setSaving(false);
+        } else {
+            onSaved(payload);
+        }
+    };
+
+    return (
+        <div className="ap-modal-backdrop" onClick={onClose}>
+            <div className="ap-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+                <div className="ap-modal-header">
+                    <div>
+                        <h2 className="ap-modal-title">Editar Cliente</h2>
+                        <p className="ap-modal-sub">{group.items.length} producto{group.items.length > 1 ? 's' : ''} en este pedido</p>
+                    </div>
+                    <button className="ap-modal-close" onClick={onClose} aria-label="Cerrar">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Productos (solo lectura) */}
+                <div className="ap-group-edit-products">
+                    {group.items.map((item, i) => (
+                        <div key={i} className="ap-group-edit-item">
+                            <span className="ap-prod-line-qty">{item.cantidad_docenas}×</span>
+                            <span className="ap-group-edit-item-name">{item.producto}</span>
+                            <span className="ap-group-edit-item-price">S/ {(item.total_soles || 0).toFixed(2)}</span>
+                        </div>
+                    ))}
+                    <div className="ap-group-edit-total">
+                        <span>Total</span>
+                        <span>S/ {group.total.toFixed(2)}</span>
+                    </div>
+                </div>
+
+                <form className="ap-modal-form" onSubmit={handleSubmit}>
+                    <div className="ap-modal-grid">
+                        <div className="ap-modal-field ap-modal-full">
+                            <label>Nombre del Cliente</label>
+                            <input type="text" value={form.nombre} onChange={e => setForm({...form, nombre: e.target.value})} placeholder="Nombre completo" required />
+                        </div>
+                        <div className="ap-modal-field">
+                            <label>DNI</label>
+                            <input type="text" maxLength="8" value={form.dni} onChange={e => setForm({...form, dni: e.target.value})} placeholder="12345678" />
+                        </div>
+                        <div className="ap-modal-field">
+                            <label>Celular</label>
+                            <input type="text" maxLength="9" value={form.telefono} onChange={e => setForm({...form, telefono: e.target.value.replace(/\D/g,'')})} placeholder="987654321" />
+                        </div>
+                        <div className="ap-modal-field ap-modal-full">
+                            <label>Dirección</label>
+                            <input type="text" value={form.direccion} onChange={e => setForm({...form, direccion: e.target.value})} placeholder="Av. Ejemplo 123, Lima" />
+                        </div>
+                    </div>
+                    {error && <p className="ap-modal-error">{error}</p>}
+                    <div className="ap-modal-actions">
+                        <button type="button" className="ap-modal-btn-cancel" onClick={onClose} disabled={saving}>Cancelar</button>
+                        <button type="submit" className="ap-modal-btn-save" disabled={saving}>
+                            {saving ? 'Guardando...' : 'Guardar Cambios'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
 /* ─── Modal de Edición ──────────────────────────────────── */
 function EditModal({ order, onClose, onSaved }) {
     const PRODUCTOS = [
@@ -188,33 +288,65 @@ function EditModal({ order, onClose, onSaved }) {
 
 /* ─── Sección: Pedidos ─────────────────────────────────────────── */
 function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
-    const [filter, setFilter]           = useState('todos');
-    const [search, setSearch]           = useState('');
-    const [updating, setUpdating]       = useState(null);
-    const [emitting, setEmitting]       = useState(null);
-    const [selected, setSelected]       = useState([]);
-    const [editOrder, setEditOrder]     = useState(null);
+    const [filter, setFilter]             = useState('todos');
+    const [search, setSearch]             = useState('');
+    const [updating, setUpdating]         = useState(null);
+    const [emitting, setEmitting]         = useState(null);
+    const [selected, setSelected]         = useState([]);
+    const [editOrder, setEditOrder]       = useState(null);
+    const [editGroup, setEditGroup]       = useState(null);
     const [vistaGrafico, setVistaGrafico] = useState('dia');
     const [pendingNotif, setPendingNotif] = useState(null);
 
-    const filtered = orders.filter(o => {
-        const estado = o.estado || 'pendiente';
-        const matchFilter = filter === 'todos' || estado === filter;
-        const matchSearch = !search || [o.nombre, o.dni, o.producto, o.direccion]
+    // Agrupar filas por pedido_id → un pedido = un cliente con N productos
+    const groupedOrders = useMemo(() => {
+        const groups = {};
+        for (const o of orders) {
+            const key = o.pedido_id || `__${o.id}`;
+            if (!groups[key]) {
+                groups[key] = {
+                    key,
+                    hasPedidoId: !!o.pedido_id,
+                    pedido_id:   o.pedido_id,
+                    nombre:      o.nombre,
+                    dni:         o.dni,
+                    direccion:   o.direccion,
+                    telefono:    o.telefono,
+                    estado:      o.estado || 'pendiente',
+                    fecha_creacion: o.fecha_creacion,
+                    items: [],
+                    ids:   [],
+                    total: 0,
+                };
+            }
+            groups[key].items.push(o);
+            groups[key].ids.push(o.id);
+            groups[key].total += (o.total_soles || 0);
+        }
+        return Object.values(groups).sort((a, b) =>
+            new Date(b.fecha_creacion) - new Date(a.fecha_creacion)
+        );
+    }, [orders]);
+
+    const filtered = groupedOrders.filter(g => {
+        const matchFilter = filter === 'todos' || g.estado === filter;
+        const matchSearch = !search || [g.nombre, g.dni, g.direccion, ...g.items.map(i => i.producto)]
             .some(v => v?.toLowerCase().includes(search.toLowerCase()));
         return matchFilter && matchSearch;
     });
 
-    const allChecked = filtered.length > 0 && filtered.every(o => selected.includes(o.id));
+    const allChecked = filtered.length > 0 && filtered.every(g => selected.includes(g.key));
+    const toggleAll  = () => setSelected(allChecked ? [] : filtered.map(g => g.key));
+    const toggleOne  = (key) => setSelected(prev => prev.includes(key) ? prev.filter(x => x !== key) : [...prev, key]);
 
-    const toggleAll = () =>
-        setSelected(allChecked ? [] : filtered.map(o => o.id));
+    const countBy = (e) => groupedOrders.filter(g => g.estado === e).length;
+    const totalIngresos = orders
+        .filter(o => (o.estado || 'pendiente') !== 'cancelado')
+        .reduce((s, o) => s + (o.total_soles || 0), 0);
 
-    const toggleOne = (id) =>
-        setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-
-    const notificarWA = (order, estado) => {
-        const phone = order.telefono;
+    // Notificación WA con todos los productos del pedido
+    const notificarWA = (group, estado) => {
+        const phone = group.telefono;
         if (!phone) return;
         const msgs = {
             'pendiente':  'Tu pedido está registrado y en espera de confirmación.',
@@ -223,46 +355,52 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
             'entregado':  '📦 ¡Tu pedido ha sido entregado! Gracias por elegirnos.',
             'cancelado':  '❌ Lamentamos informarte que tu pedido fue cancelado. Contáctanos para más información.',
         };
-        const msg = `Hola ${order.nombre || 'cliente'}, te informamos que tu pedido ha sido actualizado.\n\n📋 *Estado:* ${estado.toUpperCase()}\n${msgs[estado] || ''}\n\n🛍️ *Pedido:* ${order.producto} (${order.cantidad_docenas} doc.) — S/ ${(order.total_soles || 0).toFixed(2)}\n\n_M&V Technology Textil S.A.C._`;
+        const productList = group.items
+            .map(i => `• ${i.cantidad_docenas} doc. de ${i.producto} — S/ ${(i.total_soles || 0).toFixed(2)}`)
+            .join('\n');
+        const msg = `Hola ${group.nombre || 'cliente'}, te informamos que tu pedido ha sido actualizado.\n\n📋 *Estado:* ${estado.toUpperCase()}\n${msgs[estado] || ''}\n\n🛍️ *Productos:*\n${productList}\n\n💰 *Total: S/ ${group.total.toFixed(2)}*\n\n_M&V Technology Textil S.A.C._`;
         window.open(`https://wa.me/51${phone}?text=${encodeURIComponent(msg)}`, '_blank');
     };
 
-    const updateEstado = async (id, nuevoEstado) => {
-        const order = orders.find(o => o.id === id);
-        const prevEstado = order?.estado || 'pendiente';
+    // Actualizar estado de TODAS las filas del grupo a la vez
+    const updateEstado = async (group, nuevoEstado) => {
+        const prevEstado = group.estado;
+        setOrders(prev => prev.map(o => group.ids.includes(o.id) ? { ...o, estado: nuevoEstado } : o));
+        setUpdating(group.key);
 
-        setOrders(prev => prev.map(o => o.id === id ? { ...o, estado: nuevoEstado } : o));
-        setUpdating(id);
-
-        const { error } = await supabase.from('ventas').update({ estado: nuevoEstado }).eq('id', id);
+        const { error } = group.hasPedidoId
+            ? await supabase.from('ventas').update({ estado: nuevoEstado }).eq('pedido_id', group.pedido_id)
+            : await supabase.from('ventas').update({ estado: nuevoEstado }).in('id', group.ids);
 
         if (error) {
-            setOrders(prev => prev.map(o => o.id === id ? { ...o, estado: prevEstado } : o));
+            setOrders(prev => prev.map(o => group.ids.includes(o.id) ? { ...o, estado: prevEstado } : o));
             alert('No se pudo actualizar el estado. Intenta de nuevo.');
-        } else if (order?.telefono) {
-            setPendingNotif({ order: { ...order, estado: nuevoEstado }, estado: nuevoEstado });
+        } else if (group.telefono) {
+            setPendingNotif({ group: { ...group, estado: nuevoEstado }, estado: nuevoEstado });
             setTimeout(() => setPendingNotif(null), 6000);
         }
         setUpdating(null);
     };
 
-    const emitirBoleta = async (id) => {
-        if (!window.confirm("¿Seguro que deseas emitir una boleta electrónica para este pedido? Esta acción es irreversible en Nubefact.")) return;
-        setEmitting(id);
+    const emitirBoleta = async (group) => {
+        if (!window.confirm("¿Seguro que deseas emitir una boleta electrónica? Esta acción es irreversible en Nubefact.")) return;
+        setEmitting(group.key);
         try {
-            const { data, error } = await supabase.functions.invoke('emitir-boleta', {
-                body: { orderId: id }
-            });
+            // Pasa pedidoId para multi-producto → una sola boleta con todos los ítems
+            const body = group.hasPedidoId
+                ? { pedidoId: group.pedido_id }
+                : { orderId: group.items[0].id };
+            const { data, error } = await supabase.functions.invoke('emitir-boleta', { body });
             if (error) throw error;
             if (data?.error) throw new Error(data.error);
-            // Actualiza solo la URL del comprobante y el estado en el estado local
             if (data?.comprobante_url) {
                 setOrders(prev => prev.map(o =>
-                    o.id === id ? { ...o, comprobante_url: data.comprobante_url, estado: 'pagado' } : o
+                    group.ids.includes(o.id)
+                        ? { ...o, comprobante_url: data.comprobante_url, estado: 'pagado' }
+                        : o
                 ));
             }
         } catch (err) {
-            console.error("Error emitiendo boleta:", err);
             alert("Error al emitir boleta: " + err.message);
         } finally {
             setEmitting(null);
@@ -270,108 +408,86 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
     };
 
     const handleExport = () => {
-        const rows = selected.length > 0
-            ? filtered.filter(o => selected.includes(o.id))
-            : filtered;
-        exportToCSV(rows);
+        const toExport = selected.length > 0 ? filtered.filter(g => selected.includes(g.key)) : filtered;
+        exportToCSV(toExport.flatMap(g => g.items.map(item => ({ ...item, estado: g.estado }))));
     };
 
-    const countBy = (e) => orders.filter(o => (o.estado || 'pendiente') === e).length;
-    const totalIngresos = orders
-        .filter(o => (o.estado || 'pendiente') !== 'cancelado')
-        .reduce((s, o) => s + (o.total_soles || 0), 0);
-
     const handleSaved = (updatedFields) => {
-        // Fusiona los campos editados en el estado local sin refetch
-        setOrders(prev => prev.map(o =>
-            o.id === editOrder.id ? { ...o, ...updatedFields } : o
-        ));
+        setOrders(prev => prev.map(o => o.id === editOrder.id ? { ...o, ...updatedFields } : o));
         setEditOrder(null);
     };
 
-    // Procesar datos para el gráfico: agrupar total dinámicamente
+    const handleGroupSaved = (updatedFields) => {
+        setOrders(prev => prev.map(o => editGroup.ids.includes(o.id) ? { ...o, ...updatedFields } : o));
+        setEditGroup(null);
+    };
+
     const chartData = orders
         .filter(o => (o.estado || 'pendiente') !== 'cancelado' && o.fecha_creacion)
         .reduce((acc, order) => {
-            const dateObj = new Date(order.fecha_creacion);
-            let dateStr = '';
-            let sortDate = 0;
-
+            const d = new Date(order.fecha_creacion);
+            let dateStr, sortDate;
             if (vistaGrafico === 'dia') {
-                const day = dateObj.getDate().toString().padStart(2, '0');
-                const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-                dateStr = `${day}/${month}`;
-                sortDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()).getTime();
+                dateStr  = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}`;
+                sortDate = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
             } else if (vistaGrafico === 'mes') {
-                const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-                const month = monthNames[dateObj.getMonth()];
-                const year = dateObj.getFullYear();
-                dateStr = `${month} ${year}`;
-                sortDate = new Date(year, dateObj.getMonth(), 1).getTime();
-            } else if (vistaGrafico === 'año') {
-                const year = dateObj.getFullYear();
-                dateStr = `${year}`;
-                sortDate = new Date(year, 0, 1).getTime();
-            }
-            
-            const existing = acc.find(item => item.date === dateStr);
-            if (existing) {
-                existing.total += (order.total_soles || 0);
+                const mn = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+                dateStr  = `${mn[d.getMonth()]} ${d.getFullYear()}`;
+                sortDate = new Date(d.getFullYear(), d.getMonth(), 1).getTime();
             } else {
-                acc.push({ date: dateStr, total: (order.total_soles || 0), sortDate });
+                dateStr  = `${d.getFullYear()}`;
+                sortDate = new Date(d.getFullYear(), 0, 1).getTime();
             }
+            const ex = acc.find(x => x.date === dateStr);
+            if (ex) ex.total += (order.total_soles || 0);
+            else acc.push({ date: dateStr, total: order.total_soles || 0, sortDate });
             return acc;
         }, [])
         .sort((a, b) => a.sortDate - b.sortDate)
-        .map(item => ({ date: item.date, total: item.total })); // limpiar campo sortDate
+        .map(({ date, total }) => ({ date, total }));
 
     return (
         <>
             {editOrder && (
-                <EditModal
-                    order={editOrder}
-                    onClose={() => setEditOrder(null)}
-                    onSaved={handleSaved}
-                />
+                <EditModal order={editOrder} onClose={() => setEditOrder(null)} onSaved={handleSaved} />
+            )}
+            {editGroup && (
+                <GroupEditModal group={editGroup} onClose={() => setEditGroup(null)} onSaved={handleGroupSaved} />
             )}
 
-            {/* Toast de notificación WA */}
+            {/* WA Toast */}
             {pendingNotif && (
                 <div className="ap-wa-toast">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="#25D366">
                         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
                         <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.848L0 24l6.335-1.508A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.886 0-3.655-.498-5.187-1.367l-.372-.22-3.762.896.952-3.658-.242-.386A9.944 9.944 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
                     </svg>
-                    <span>Estado actualizado — <strong>{pendingNotif.order.nombre}</strong> tiene celular registrado</span>
-                    <button className="ap-wa-toast-btn" onClick={() => { notificarWA(pendingNotif.order, pendingNotif.estado); setPendingNotif(null); }}>
-                        Enviar notificación
+                    <span>Estado actualizado — <strong>{pendingNotif.group.nombre}</strong> tiene celular registrado</span>
+                    <button className="ap-wa-toast-btn" onClick={() => { notificarWA(pendingNotif.group, pendingNotif.estado); setPendingNotif(null); }}>
+                        Notificar
                     </button>
                     <button className="ap-wa-toast-close" onClick={() => setPendingNotif(null)}>✕</button>
                 </div>
             )}
 
-            {/* Stats cards */}
+            {/* Stats */}
             <div className="ap-stats">
-                <StatCard label="Total Pedidos"  value={orders.length}           growth="+12%" positive icon="orders" />
+                <StatCard label="Total Pedidos" value={groupedOrders.length}              growth="+12%" positive icon="orders" />
                 <StatCard label="Ingresos"       value={`S/ ${totalIngresos.toFixed(2)}`} growth="+8.5%" positive icon="revenue" />
-                <StatCard label="Pendientes"     value={countBy('pendiente')}    growth="-5%"  positive={false} icon="pending" />
-                <StatCard label="En Proceso"     value={countBy('en proceso')}   growth="+3%"  positive icon="process" />
-                <StatCard label="Entregados"     value={countBy('entregado')}    growth="+22%" positive icon="done" />
+                <StatCard label="Pendientes"     value={countBy('pendiente')}              growth="-5%"  positive={false} icon="pending" />
+                <StatCard label="En Proceso"     value={countBy('en proceso')}             growth="+3%"  positive icon="process" />
+                <StatCard label="Entregados"     value={countBy('entregado')}              growth="+22%" positive icon="done" />
             </div>
 
-            {/* Gráfico de Ventas */}
+            {/* Gráfico */}
             <div className="ap-chart-placeholder">
                 <div className="ap-chart-header" style={{ alignItems: 'center' }}>
                     <div>
                         <h3>Resumen de Ventas</h3>
                         <p>Evolución de ingresos</p>
                     </div>
-                    <select 
-                        className="ap-estado-select" 
-                        value={vistaGrafico} 
-                        onChange={(e) => setVistaGrafico(e.target.value)}
-                        style={{ background: '#F1F5F9', color: '#475569', fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
-                    >
+                    <select className="ap-estado-select" value={vistaGrafico} onChange={e => setVistaGrafico(e.target.value)}
+                        style={{ background: '#F1F5F9', color: '#475569', fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>
                         <option value="dia">Por Día</option>
                         <option value="mes">Por Mes</option>
                         <option value="año">Por Año</option>
@@ -383,36 +499,17 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
                             <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.4}/>
+                                        <stop offset="5%"  stopColor="#3B82F6" stopOpacity={0.4}/>
                                         <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                                <XAxis 
-                                    dataKey="date" 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{ fill: '#94A3B8', fontSize: 11 }} 
-                                    dy={10} 
-                                />
-                                <YAxis 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{ fill: '#94A3B8', fontSize: 11 }} 
-                                    tickFormatter={(value) => value >= 1000 ? `${(value/1000).toFixed(1)}k` : value}
-                                />
-                                <Tooltip 
-                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                                    formatter={(value) => [`S/ ${value.toFixed(2)}`, 'Ingresos']}
-                                />
-                                <Area 
-                                    type="monotone" 
-                                    dataKey="total" 
-                                    stroke="#3B82F6" 
-                                    strokeWidth={3}
-                                    fillOpacity={1} 
-                                    fill="url(#colorTotal)" 
-                                />
+                                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 11 }} dy={10} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 11 }}
+                                    tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
+                                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                    formatter={v => [`S/ ${v.toFixed(2)}`, 'Ingresos']} />
+                                <Area type="monotone" dataKey="total" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorTotal)" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -427,14 +524,11 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
             <div className="ap-toolbar">
                 <div className="ap-filter-tabs">
                     {['todos', ...ESTADOS].map(e => (
-                        <button
-                            key={e}
-                            className={`ap-filter-tab ${filter === e ? 'active' : ''}`}
-                            onClick={() => { setFilter(e); setSelected([]); }}
-                        >
+                        <button key={e} className={`ap-filter-tab ${filter === e ? 'active' : ''}`}
+                            onClick={() => { setFilter(e); setSelected([]); }}>
                             {e.charAt(0).toUpperCase() + e.slice(1)}
                             <span className="ap-filter-count">
-                                {e === 'todos' ? orders.length : countBy(e)}
+                                {e === 'todos' ? groupedOrders.length : countBy(e)}
                             </span>
                         </button>
                     ))}
@@ -442,23 +536,15 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
                 <div className="ap-toolbar-right">
                     <div className="ap-search">
                         <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        <input
-                            type="text"
-                            placeholder="Buscar por nombre, DNI, producto..."
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                        />
-                        {search && (
-                            <button className="ap-search-clear" onClick={() => setSearch('')}>✕</button>
-                        )}
+                        <input type="text" placeholder="Buscar por nombre, DNI, producto..."
+                            value={search} onChange={e => setSearch(e.target.value)} />
+                        {search && <button className="ap-search-clear" onClick={() => setSearch('')}>✕</button>}
                     </div>
                     <button className="ap-btn-export" onClick={handleExport}>
                         <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
                         {selected.length > 0 ? `Exportar (${selected.length})` : 'Exportar CSV'}
                     </button>
@@ -468,10 +554,7 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
             {/* Table */}
             <div className="ap-table-card">
                 {loading ? (
-                    <div className="ap-state-box">
-                        <div className="ap-spinner" />
-                        <p>Cargando pedidos...</p>
-                    </div>
+                    <div className="ap-state-box"><div className="ap-spinner" /><p>Cargando pedidos...</p></div>
                 ) : filtered.length === 0 ? (
                     <div className="ap-state-box">
                         <svg width="48" height="48" fill="none" stroke="#CBD5E1" viewBox="0 0 24 24">
@@ -484,105 +567,99 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
                     <table className="ap-table">
                         <thead>
                             <tr>
-                                <th>
-                                    <input
-                                        type="checkbox"
-                                        className="ap-checkbox"
-                                        checked={allChecked}
-                                        onChange={toggleAll}
-                                    />
-                                </th>
+                                <th><input type="checkbox" className="ap-checkbox" checked={allChecked} onChange={toggleAll} /></th>
                                 <th>Fecha</th>
                                 <th>Cliente</th>
                                 <th>DNI</th>
                                 <th>Dirección</th>
-                                <th>Producto</th>
-                                <th>Doc.</th>
+                                <th>Productos</th>
                                 <th>Total</th>
                                 <th>Comprobante</th>
                                 <th>Estado</th>
-                                <th>Editar</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filtered.map(order => {
-                                const estado = order.estado || 'pendiente';
-                                const style  = ESTADO_META[estado] || ESTADO_META['pendiente'];
-                                const isSelected = selected.includes(order.id);
-                                const fecha = order.fecha_creacion
-                                    ? new Date(order.fecha_creacion).toLocaleString('es-PE', {
+                            {filtered.map(group => {
+                                const estado     = group.estado;
+                                const style      = ESTADO_META[estado] || ESTADO_META['pendiente'];
+                                const isSelected = selected.includes(group.key);
+                                const isSingle   = group.items.length === 1;
+                                const compUrl    = group.items.find(i => i.comprobante_url)?.comprobante_url;
+                                const fecha      = group.fecha_creacion
+                                    ? new Date(group.fecha_creacion).toLocaleString('es-PE', {
                                         day: '2-digit', month: '2-digit', year: '2-digit',
                                         hour: '2-digit', minute: '2-digit'
                                       })
                                     : '—';
 
                                 return (
-                                    <tr key={order.id}
-                                        className={`${isSelected ? 'row-selected' : ''} ${updating === order.id ? 'row-updating' : ''}`}
-                                    >
+                                    <tr key={group.key}
+                                        className={`${isSelected ? 'row-selected' : ''} ${updating === group.key ? 'row-updating' : ''}`}>
                                         <td>
-                                            <input
-                                                type="checkbox"
-                                                className="ap-checkbox"
-                                                checked={isSelected}
-                                                onChange={() => toggleOne(order.id)}
-                                            />
+                                            <input type="checkbox" className="ap-checkbox"
+                                                checked={isSelected} onChange={() => toggleOne(group.key)} />
                                         </td>
-                                        <td className="td-fecha" data-label="Fecha">{fecha}</td>
-                                        <td className="td-nombre" data-label="Cliente">{order.nombre || '—'}</td>
-                                        <td className="td-dni" data-label="DNI">{order.dni || '—'}</td>
-                                        <td className="td-dir" data-label="Dirección">{order.direccion || '—'}</td>
-                                        <td className="td-prod" data-label="Producto">{order.producto || '—'}</td>
-                                        <td className="td-qty" data-label="Docenas">{order.cantidad_docenas ?? '—'}</td>
-                                        <td className="td-total" data-label="Total">S/ {(order.total_soles || 0).toFixed(2)}</td>
+                                        <td className="td-fecha"  data-label="Fecha">{fecha}</td>
+                                        <td className="td-nombre" data-label="Cliente">{group.nombre || '—'}</td>
+                                        <td className="td-dni"    data-label="DNI">{group.dni || '—'}</td>
+                                        <td className="td-dir"    data-label="Dirección">{group.direccion || '—'}</td>
+                                        <td data-label="Productos">
+                                            {group.items.map((item, i) => (
+                                                <div key={i} className="ap-prod-line">
+                                                    <span className="ap-prod-line-qty">{item.cantidad_docenas}×</span>
+                                                    <span className="ap-prod-line-name">{item.producto}</span>
+                                                </div>
+                                            ))}
+                                        </td>
+                                        <td className="td-total" data-label="Total">S/ {group.total.toFixed(2)}</td>
                                         <td data-label="Comprobante">
-                                            {order.comprobante_url ? (
-                                                <a href={order.comprobante_url} target="_blank" rel="noopener noreferrer" className="ap-btn-success">
-                                                    Ver PDF
-                                                </a>
+                                            {compUrl ? (
+                                                <a href={compUrl} target="_blank" rel="noopener noreferrer" className="ap-btn-success">Ver PDF</a>
                                             ) : (
-                                                <button 
-                                                    className="ap-btn-danger" 
-                                                    onClick={() => emitirBoleta(order.id)}
-                                                    disabled={emitting === order.id}
-                                                >
-                                                    {emitting === order.id ? 'Emitiendo...' : 'Emitir Boleta'}
+                                                <button className="ap-btn-danger"
+                                                    onClick={() => emitirBoleta(group)}
+                                                    disabled={emitting === group.key}>
+                                                    {emitting === group.key ? 'Emitiendo...' : 'Emitir Boleta'}
                                                 </button>
                                             )}
                                         </td>
                                         <td data-label="Estado">
-                                            <select
-                                                className="ap-estado-select"
-                                                value={estado}
-                                                disabled={updating === order.id}
+                                            <select className="ap-estado-select" value={estado}
+                                                disabled={updating === group.key}
                                                 style={{ background: style.bg, color: style.color }}
-                                                onChange={e => updateEstado(order.id, e.target.value)}
-                                            >
+                                                onChange={e => updateEstado(group, e.target.value)}>
                                                 {ESTADOS.map(s => (
-                                                    <option key={s} value={s}>
-                                                        {s.charAt(0).toUpperCase() + s.slice(1)}
-                                                    </option>
+                                                    <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
                                                 ))}
                                             </select>
                                         </td>
-                                        <td data-label="Editar">
-                                            {order.comprobante_url ? (
-                                                <span className="ap-edit-locked" title="No editable: boleta emitida">
-                                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                    </svg>
-                                                </span>
-                                            ) : (
-                                                <button
-                                                    className="ap-edit-btn"
-                                                    onClick={() => setEditOrder(order)}
-                                                    title="Editar pedido"
-                                                >
-                                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                </button>
-                                            )}
+                                        <td data-label="Acciones">
+                                            <div className="ap-row-actions">
+                                                {group.telefono && (
+                                                    <button className="ap-wa-btn" title="Notificar por WhatsApp"
+                                                        onClick={() => notificarWA(group, estado)}>
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                                                            <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.848L0 24l6.335-1.508A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.886 0-3.655-.498-5.187-1.367l-.372-.22-3.762.896.952-3.658-.242-.386A9.944 9.944 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                                {compUrl ? (
+                                                    <span className="ap-edit-locked" title="No editable: boleta emitida">
+                                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                        </svg>
+                                                    </span>
+                                                ) : (
+                                                    <button className="ap-edit-btn" title="Editar pedido"
+                                                        onClick={() => isSingle ? setEditOrder(group.items[0]) : setEditGroup(group)}>
+                                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 );

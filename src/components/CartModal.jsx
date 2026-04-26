@@ -30,8 +30,10 @@ export default function CartModal({ cart, onClose, onConfirm, onOpenLegal, onUpd
 
         onConfirm(form);
 
+        const pedidoId = crypto.randomUUID();
         supabase.from('ventas').insert(
             cart.map(item => ({
+                pedido_id: pedidoId,
                 producto: item.name,
                 cantidad_docenas: item.quantity,
                 total_soles: item.price * item.quantity,

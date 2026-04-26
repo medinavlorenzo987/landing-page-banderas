@@ -217,6 +217,22 @@ body { font-family: 'Inter', 'Poppins', sans-serif; background: #F1F5F9; color: 
 }
 .ap-btn-success:hover { background: #059669; color: #fff; border-color: #059669; }
 
+/* ── Productos inline en tabla ──────────────────────────────────── */
+.ap-prod-line      { display: flex; align-items: baseline; gap: .35rem; line-height: 1.6; }
+.ap-prod-line-qty  { font-size: .72rem; font-weight: 800; color: #6366F1; background: #EEF2FF; padding: .05rem .35rem; border-radius: 4px; flex-shrink: 0; }
+.ap-prod-line-name { font-size: .8rem; color: #334155; }
+
+/* ── Acciones por fila ───────────────────────────────────────────── */
+.ap-row-actions { display: flex; align-items: center; gap: .4rem; }
+
+.ap-wa-btn {
+    background: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0;
+    width: 30px; height: 30px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all .2s; flex-shrink: 0;
+}
+.ap-wa-btn:hover { background: #25D366; color: #fff; border-color: #25D366; }
+
 /* ── Botón Editar en tabla ──────────────────────────────────────── */
 .ap-edit-btn {
     background: #F0F9FF; color: #0284C7; border: 1px solid #BAE6FD;
@@ -231,6 +247,25 @@ body { font-family: 'Inter', 'Poppins', sans-serif; background: #F1F5F9; color: 
     width: 30px; height: 30px; border-radius: 8px;
     background: #F8FAFC; color: #CBD5E1; border: 1px solid #E2E8F0;
     cursor: default;
+}
+
+/* ── Modal de Edición de Grupo ──────────────────────────────────── */
+.ap-group-edit-products {
+    margin: 0 1.5rem;
+    border: 1.5px solid #F1F5F9; border-radius: 12px;
+    overflow: hidden;
+}
+.ap-group-edit-item {
+    display: flex; align-items: center; gap: .7rem;
+    padding: .6rem 1rem; border-bottom: 1px solid #F8FAFC;
+    background: #FAFAFA;
+}
+.ap-group-edit-item-name  { flex: 1; font-size: .85rem; color: #334155; }
+.ap-group-edit-item-price { font-size: .82rem; font-weight: 700; color: #059669; white-space: nowrap; }
+.ap-group-edit-total {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: .65rem 1rem; background: #F1F5F9;
+    font-size: .82rem; font-weight: 800; color: #0F172A;
 }
 
 /* ── Modal de Edición ───────────────────────────────────────────── */
