@@ -62,12 +62,55 @@ function exportToCSV(rows) {
     URL.revokeObjectURL(url);
 }
 
+/* ─── Modal Productos del Pedido ───────────────────────── */
+function ProductosModal({ group, onClose }) {
+    useEffect(() => {
+        const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
+        window.addEventListener('keydown', handleKey);
+        return () => window.removeEventListener('keydown', handleKey);
+    }, [onClose]);
+
+    return (
+        <div className="ap-modal-backdrop" onClick={onClose}>
+            <div className="ap-modal ap-modal--sm" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+                <div className="ap-modal-header">
+                    <div>
+                        <h2 className="ap-modal-title">Productos del Pedido</h2>
+                        <p className="ap-modal-sub">{group.nombre} · {group.items.length} producto{group.items.length > 1 ? 's' : ''}</p>
+                    </div>
+                    <button className="ap-modal-close" onClick={onClose} aria-label="Cerrar">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div className="ap-group-edit-products">
+                    {group.items.map((item, i) => (
+                        <div key={i} className="ap-group-edit-item">
+                            <span className="ap-prod-line-qty">{item.cantidad_docenas}×</span>
+                            <span className="ap-group-edit-item-name">{item.producto}</span>
+                            <span className="ap-group-edit-item-price">S/ {(item.total_soles || 0).toFixed(2)}</span>
+                        </div>
+                    ))}
+                    <div className="ap-group-edit-total">
+                        <span>Total</span>
+                        <span>S/ {group.total.toFixed(2)}</span>
+                    </div>
+                </div>
+                <div style={{ padding: '.75rem 1.5rem 1.25rem' }}>
+                    <button className="ap-modal-btn-cancel" style={{ width: '100%' }} onClick={onClose}>Cerrar</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 /* ─── Modal Emitir Comprobante ──────────────────────────── */
 function EmitirModal({ group, onClose, onEmitir, emitting }) {
-    const [tipo, setTipo]             = useState(group.ruc ? 'factura' : 'boleta');
-    const [ruc, setRuc]               = useState(group.ruc || '');
+    const [tipo, setTipo]               = useState(group.ruc ? 'factura' : 'boleta');
+    const [ruc, setRuc]                 = useState(group.ruc || '');
     const [razonSocial, setRazonSocial] = useState(group.razon_social || group.nombre || '');
-    const [error, setError]           = useState('');
+    const [error, setError]             = useState('');
 
     useEffect(() => {
         const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -78,87 +121,132 @@ function EmitirModal({ group, onClose, onEmitir, emitting }) {
     const handleEmitir = () => {
         setError('');
         if (tipo === 'factura') {
-            if (!/^\d{11}$/.test(ruc.replace(/\D/g,''))) { setError('RUC debe tener 11 dígitos'); return; }
+            if (!/^\d{11}$/.test(ruc.replace(/\D/g, ''))) { setError('RUC debe tener 11 dígitos'); return; }
             if (!razonSocial.trim()) { setError('Ingresa la Razón Social'); return; }
         }
-        onEmitir({ tipo, ruc: ruc.replace(/\D/g,''), razonSocial: razonSocial.trim() });
+        onEmitir({ tipo, ruc: ruc.replace(/\D/g, ''), razonSocial: razonSocial.trim() });
     };
 
     return (
         <div className="ap-modal-backdrop" onClick={onClose}>
-            <div className="ap-modal ap-modal--sm" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
-                <div className="ap-modal-header">
-                    <div>
-                        <h2 className="ap-modal-title">Emitir Comprobante</h2>
-                        <p className="ap-modal-sub">{group.nombre} · S/ {group.total.toFixed(2)}</p>
-                    </div>
-                    <button className="ap-modal-close" onClick={onClose} aria-label="Cerrar">
+            <div className="ap-emit-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+
+                {/* Header */}
+                <div className="ap-emit-header">
+                    <div className="ap-emit-header-icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <div className="ap-emit-header-text">
+                        <h2>Emitir Comprobante</h2>
+                        <p>{group.nombre}</p>
+                    </div>
+                    <button className="ap-emit-close" onClick={onClose} aria-label="Cerrar">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
 
-                {/* Tipo selector */}
-                <div className="ap-emit-tipo-row">
-                    <button
-                        type="button"
-                        className={`ap-emit-tipo-btn ${tipo === 'boleta' ? 'active' : ''}`}
-                        onClick={() => setTipo('boleta')}
-                    >
-                        Boleta
-                    </button>
-                    <button
-                        type="button"
-                        className={`ap-emit-tipo-btn ${tipo === 'factura' ? 'active' : ''}`}
-                        onClick={() => setTipo('factura')}
-                    >
-                        Factura
-                    </button>
-                </div>
+                <div className="ap-emit-body">
+                    {/* Tipo selector */}
+                    <div className="ap-emit-tipo-row">
+                        <button
+                            type="button"
+                            className={`ap-emit-tipo-btn ${tipo === 'boleta' ? 'active' : ''}`}
+                            onClick={() => setTipo('boleta')}
+                        >
+                            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            Boleta
+                        </button>
+                        <button
+                            type="button"
+                            className={`ap-emit-tipo-btn ${tipo === 'factura' ? 'active' : ''}`}
+                            onClick={() => setTipo('factura')}
+                        >
+                            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            Factura
+                        </button>
+                    </div>
 
-                {tipo === 'factura' && (
-                    <div className="ap-modal-form" style={{ paddingTop: '1rem' }}>
-                        <div className="ap-modal-field ap-modal-full">
-                            <label>RUC</label>
-                            <input
-                                type="text"
-                                maxLength={11}
-                                value={ruc}
-                                onChange={e => setRuc(e.target.value.replace(/\D/g,''))}
-                                placeholder="20123456789"
-                            />
+                    {/* Campos RUC para factura */}
+                    {tipo === 'factura' && (
+                        <div className="ap-emit-factura-fields">
+                            <div className="ap-emit-field">
+                                <label>RUC</label>
+                                <input
+                                    type="text"
+                                    maxLength={11}
+                                    value={ruc}
+                                    onChange={e => setRuc(e.target.value.replace(/\D/g, ''))}
+                                    placeholder="20123456789"
+                                />
+                            </div>
+                            <div className="ap-emit-field">
+                                <label>Razón Social</label>
+                                <input
+                                    type="text"
+                                    value={razonSocial}
+                                    onChange={e => setRazonSocial(e.target.value)}
+                                    placeholder="EMPRESA S.A.C."
+                                />
+                            </div>
                         </div>
-                        <div className="ap-modal-field ap-modal-full">
-                            <label>Razón Social</label>
-                            <input
-                                type="text"
-                                value={razonSocial}
-                                onChange={e => setRazonSocial(e.target.value)}
-                                placeholder="EMPRESA S.A.C."
-                            />
+                    )}
+
+                    {/* Resumen del pedido */}
+                    <div className="ap-emit-resumen">
+                        <span className="ap-emit-resumen-label">Detalle del pedido</span>
+                        <div className="ap-emit-resumen-list">
+                            {group.items.map((item, i) => (
+                                <div key={i} className="ap-emit-resumen-row">
+                                    <span className="ap-emit-resumen-qty">{item.cantidad_docenas}×</span>
+                                    <span className="ap-emit-resumen-name">{item.producto}</span>
+                                    <span className="ap-emit-resumen-price">S/ {(item.total_soles || 0).toFixed(2)}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="ap-emit-resumen-total">
+                            <span>Total a facturar</span>
+                            <span>S/ {group.total.toFixed(2)}</span>
                         </div>
                     </div>
-                )}
 
-                {/* Resumen del pedido */}
-                <div className="ap-emit-summary">
-                    {group.items.map((item, i) => (
-                        <div key={i} className="ap-emit-summary-row">
-                            <span>{item.cantidad_docenas}× {item.producto}</span>
-                            <span>S/ {(item.total_soles || 0).toFixed(2)}</span>
-                        </div>
-                    ))}
+                    {error && <p className="ap-modal-error" style={{ margin: '0' }}>{error}</p>}
                 </div>
 
-                {error && <p className="ap-modal-error">{error}</p>}
-
-                <div className="ap-modal-actions">
-                    <button type="button" className="ap-modal-btn-cancel" onClick={onClose} disabled={emitting}>
+                {/* Acciones */}
+                <div className="ap-emit-actions">
+                    <button type="button" className="ap-emit-btn-cancel" onClick={onClose} disabled={emitting}>
                         Cancelar
                     </button>
-                    <button type="button" className="ap-modal-btn-save" onClick={handleEmitir} disabled={emitting}>
-                        {emitting ? 'Emitiendo...' : `Emitir ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`}
+                    <button type="button" className="ap-emit-btn-confirm" onClick={handleEmitir} disabled={emitting}>
+                        {emitting ? (
+                            <>
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    style={{ animation: 'spin 1s linear infinite' }}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Emitiendo...
+                            </>
+                        ) : (
+                            <>
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Emitir {tipo.charAt(0).toUpperCase() + tipo.slice(1)}
+                            </>
+                        )}
                     </button>
                 </div>
             </div>
@@ -397,9 +485,10 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
     const [updating, setUpdating]         = useState(null);
     const [emitting, setEmitting]         = useState(null);
     const [selected, setSelected]         = useState([]);
-    const [editOrder, setEditOrder]       = useState(null);
-    const [editGroup, setEditGroup]       = useState(null);
-    const [emitirGroup, setEmitirGroup]   = useState(null);
+    const [editOrder, setEditOrder]         = useState(null);
+    const [editGroup, setEditGroup]         = useState(null);
+    const [emitirGroup, setEmitirGroup]     = useState(null);
+    const [productosPopup, setProductosPopup] = useState(null);
     const [vistaGrafico, setVistaGrafico] = useState('dia');
     const [pendingNotif, setPendingNotif] = useState(null);
 
@@ -571,6 +660,9 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
                     emitting={emitting === emitirGroup.key}
                 />
             )}
+            {productosPopup && (
+                <ProductosModal group={productosPopup} onClose={() => setProductosPopup(null)} />
+            )}
 
             {/* WA Toast */}
             {pendingNotif && (
@@ -726,12 +818,17 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
                                         </td>
                                         <td className="td-dir"    data-label="Dirección">{group.direccion || '—'}</td>
                                         <td data-label="Productos">
-                                            {group.items.map((item, i) => (
-                                                <div key={i} className="ap-prod-line">
-                                                    <span className="ap-prod-line-qty">{item.cantidad_docenas}×</span>
-                                                    <span className="ap-prod-line-name">{item.producto}</span>
-                                                </div>
-                                            ))}
+                                            <button
+                                                className="ap-prod-badge"
+                                                onClick={() => setProductosPopup(group)}
+                                                title="Ver productos del pedido"
+                                            >
+                                                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 10V7" />
+                                                </svg>
+                                                {group.items.length} producto{group.items.length > 1 ? 's' : ''}
+                                            </button>
                                         </td>
                                         <td className="td-total" data-label="Total">S/ {group.total.toFixed(2)}</td>
                                         <td data-label="Comprobante">

@@ -271,40 +271,139 @@ body { font-family: 'Inter', 'Poppins', sans-serif; background: #F1F5F9; color: 
 /* ── Modal Emitir Comprobante ──────────────────────────────────── */
 .ap-modal--sm { max-width: 420px; }
 
-.ap-emit-tipo-row {
-    display: flex; gap: .5rem;
-    padding: 1rem 1.5rem 0;
+.ap-emit-modal {
+    background: #fff; border-radius: 20px;
+    width: 100%; max-width: 440px;
+    box-shadow: 0 25px 60px rgba(0,0,0,.25);
+    animation: modalIn .25s cubic-bezier(.34,1.56,.64,1);
+    overflow: hidden;
 }
+
+/* Header */
+.ap-emit-header {
+    display: flex; align-items: center; gap: .75rem;
+    padding: 1.25rem 1.25rem 1.1rem;
+    border-bottom: 1px solid #F1F5F9;
+}
+.ap-emit-header-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: #EFF6FF; color: #3B82F6;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.ap-emit-header-text { flex: 1; min-width: 0; }
+.ap-emit-header-text h2 { font-size: 1rem; font-weight: 800; color: #0F172A; }
+.ap-emit-header-text p  { font-size: .78rem; color: #94A3B8; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ap-emit-close {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: #F1F5F9; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #64748B; flex-shrink: 0;
+    transition: background .15s;
+}
+.ap-emit-close:hover { background: #E2E8F0; color: #1E293B; }
+
+/* Body */
+.ap-emit-body {
+    padding: 1.1rem 1.25rem;
+    display: flex; flex-direction: column; gap: .9rem;
+}
+
+/* Tipo selector */
+.ap-emit-tipo-row { display: flex; gap: .5rem; }
 .ap-emit-tipo-btn {
-    flex: 1; padding: .6rem 1rem;
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: .4rem;
+    padding: .6rem .75rem;
     border: 2px solid #E2E8F0; border-radius: 10px;
     background: #F8FAFC; color: #64748B;
-    font-size: .85rem; font-weight: 600; cursor: pointer;
-    transition: all .18s;
+    font-size: .82rem; font-weight: 600; cursor: pointer;
+    transition: all .18s; font-family: inherit;
 }
-.ap-emit-tipo-btn:hover { border-color: #CBD5E1; color: #334155; }
+.ap-emit-tipo-btn:hover { border-color: #CBD5E1; color: #334155; background: #F1F5F9; }
 .ap-emit-tipo-btn.active {
     border-color: #3B82F6; background: #EFF6FF; color: #1D4ED8;
 }
 
-.ap-emit-summary {
-    margin: 1rem 1.5rem .5rem;
-    border: 1px solid #F1F5F9; border-radius: 10px;
+/* Factura fields */
+.ap-emit-factura-fields { display: flex; flex-direction: column; gap: .6rem; }
+.ap-emit-field { display: flex; flex-direction: column; gap: .3rem; }
+.ap-emit-field label { font-size: .72rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: .04em; }
+.ap-emit-field input {
+    padding: .55rem .75rem; border-radius: 9px;
+    border: 1.5px solid #E2E8F0; font-size: .85rem; color: #1E293B;
+    background: #F8FAFC; outline: none; font-family: inherit;
+    transition: border-color .15s;
+}
+.ap-emit-field input:focus { border-color: #3B82F6; background: #fff; }
+
+/* Resumen */
+.ap-emit-resumen { display: flex; flex-direction: column; gap: .4rem; }
+.ap-emit-resumen-label {
+    font-size: .68rem; font-weight: 700; color: #94A3B8;
+    text-transform: uppercase; letter-spacing: .06em;
+}
+.ap-emit-resumen-list {
+    border: 1.5px solid #E2E8F0; border-radius: 10px;
     overflow: hidden;
 }
-.ap-emit-summary-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: .45rem .8rem;
-    font-size: .8rem; color: #475569;
+.ap-emit-resumen-row {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .55rem .8rem;
+    font-size: .82rem; color: #475569;
     border-bottom: 1px solid #F1F5F9;
 }
-.ap-emit-summary-row:last-child { border-bottom: none; }
+.ap-emit-resumen-row:last-child { border-bottom: none; }
+.ap-emit-resumen-qty { font-weight: 700; color: #94A3B8; min-width: 24px; }
+.ap-emit-resumen-name { flex: 1; }
+.ap-emit-resumen-price { font-weight: 700; color: #0F172A; white-space: nowrap; }
+.ap-emit-resumen-total {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: .65rem .9rem; border-radius: 10px;
+    background: #0F172A; color: #fff;
+    font-size: .88rem; font-weight: 800;
+}
+
+/* Acciones */
+.ap-emit-actions {
+    display: flex; gap: .6rem; align-items: center;
+    padding: .9rem 1.25rem 1.1rem;
+    border-top: 1px solid #F1F5F9;
+}
+.ap-emit-btn-cancel {
+    flex: 1; padding: .65rem 1rem; border-radius: 10px;
+    border: 1.5px solid #E2E8F0; background: #F8FAFC; color: #64748B;
+    font-size: .85rem; font-weight: 600; cursor: pointer;
+    transition: all .15s; font-family: inherit;
+}
+.ap-emit-btn-cancel:hover:not(:disabled) { background: #F1F5F9; color: #1E293B; }
+.ap-emit-btn-cancel:disabled { opacity: .5; cursor: not-allowed; }
+.ap-emit-btn-confirm {
+    flex: 2; display: flex; align-items: center; justify-content: center; gap: .4rem;
+    padding: .65rem 1rem; border-radius: 10px;
+    border: none; background: linear-gradient(135deg, #3B82F6, #2563EB);
+    color: #fff; font-size: .85rem; font-weight: 700; cursor: pointer;
+    transition: all .18s; font-family: inherit;
+    box-shadow: 0 4px 12px rgba(59,130,246,.35);
+}
+.ap-emit-btn-confirm:hover:not(:disabled) { opacity: .92; transform: translateY(-1px); }
+.ap-emit-btn-confirm:disabled { opacity: .6; cursor: not-allowed; transform: none; box-shadow: none; }
 
 .ap-doc-ruc {
     font-size: .73rem; font-weight: 700; color: #3730A3;
     background: #EEF2FF; border-radius: 5px; padding: 2px 6px;
     white-space: nowrap;
 }
+
+.ap-prod-badge {
+    display: inline-flex; align-items: center; gap: .35rem;
+    padding: .38rem .75rem; border-radius: 8px;
+    background: #F1F5F9; color: #475569;
+    font-size: .8rem; font-weight: 600; cursor: pointer;
+    border: 1px solid #E2E8F0;
+    transition: background .15s, color .15s;
+    white-space: nowrap;
+}
+.ap-prod-badge:hover { background: #E2E8F0; color: #1E293B; }
 
 /* ── Modal de Edición ───────────────────────────────────────────── */
 .ap-modal-backdrop {
@@ -798,4 +897,16 @@ body { font-family: 'Inter', 'Poppins', sans-serif; background: #F1F5F9; color: 
     .admin-login-box h1 { font-size: 1.25rem; }
     .admin-login-logo { width: 64px; height: 64px; }
     .admin-login-logo svg { width: 32px; height: 32px; }
+
+    /* EmitirModal en mobile */
+    .ap-emit-modal { border-radius: 16px; }
+    .ap-emit-header { padding: 1rem; }
+    .ap-emit-body { padding: .85rem 1rem; gap: .75rem; }
+    .ap-emit-actions { padding: .75rem 1rem .9rem; }
+    .ap-emit-tipo-btn { font-size: .76rem; padding: .5rem .5rem; }
+
+    /* ProductosModal en mobile */
+    .ap-modal--sm { max-width: 100%; border-radius: 16px; }
+
+    .ap-prod-badge { font-size: .76rem; padding: .32rem .6rem; }
 }
