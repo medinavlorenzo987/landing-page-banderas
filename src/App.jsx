@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import WatermarkVideo from './components/WatermarkVideo';
 import Hero from './components/Hero';
@@ -10,10 +10,21 @@ import CartModal from './components/CartModal';
 import CompanyProfile from './components/CompanyProfile';
 
 function App() {
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    try {
+      const saved = localStorage.getItem('banderas_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [toastData, setToastData] = useState({ visible: false, product: '', qty: 0 });
   const [modalOpen, setModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('empresa');
+
+  useEffect(() => {
+    localStorage.setItem('banderas_cart', JSON.stringify(cart));
+  }, [cart]);
 
   const addToCart = (productName, price, qty) => {
     setCart((prevCart) => {
@@ -49,6 +60,8 @@ function App() {
 
     const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`;
     window.open(urlWhatsApp, '_blank');
+    setCart([]);
+    localStorage.removeItem('banderas_cart');
     setModalOpen(false);
   };
 

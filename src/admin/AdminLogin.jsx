@@ -1,24 +1,26 @@
 import { useState } from 'react';
+import { supabase } from '../supabaseClient';
 
-const ADMIN_USER = 'admin';
-const ADMIN_PASS = 'banderas2024';
-
-export default function AdminLogin({ onLogin }) {
-    const [form, setForm] = useState({ user: '', pass: '' });
+export default function AdminLogin() {
+    const [form, setForm] = useState({ email: '', pass: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setTimeout(() => {
-            if (form.user === ADMIN_USER && form.pass === ADMIN_PASS) {
-                onLogin();
-            } else {
-                setError('Usuario o contraseña incorrectos');
-            }
-            setLoading(false);
-        }, 500);
+        setError('');
+
+        const { error: authError } = await supabase.auth.signInWithPassword({
+            email: form.email,
+            password: form.pass,
+        });
+
+        if (authError) {
+            setError('Usuario o contraseña incorrectos');
+        }
+
+        setLoading(false);
     };
 
     return (
@@ -34,13 +36,13 @@ export default function AdminLogin({ onLogin }) {
 
                 <form onSubmit={handleSubmit}>
                     <div className="admin-field">
-                        <label>Usuario</label>
+                        <label>Email</label>
                         <input
-                            type="text"
-                            placeholder="admin"
-                            value={form.user}
-                            onChange={(e) => { setForm({ ...form, user: e.target.value }); setError(''); }}
-                            autoComplete="username"
+                            type="email"
+                            placeholder="admin@ejemplo.com"
+                            value={form.email}
+                            onChange={(e) => { setForm({ ...form, email: e.target.value }); setError(''); }}
+                            autoComplete="email"
                         />
                     </div>
                     <div className="admin-field">

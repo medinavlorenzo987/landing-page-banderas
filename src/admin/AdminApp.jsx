@@ -1,24 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AdminLogin from './AdminLogin';
 import AdminPanel from './AdminPanel';
+import { supabase } from '../supabaseClient';
 import './admin.css';
 
 export default function AdminApp() {
-    const [authenticated, setAuthenticated] = useState(
-        () => sessionStorage.getItem('admin_auth') === '1'
-    );
+    const [session, setSession] = useState(undefined);
 
-    const handleLogin = () => {
-        sessionStorage.setItem('admin_auth', '1');
-        setAuthenticated(true);
+    useEffect(() => {
+        supabase.auth.getSession().then(({ data }) => {
+            setSession(data.session);
+        });
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setSession(session);
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
     };
 
-    const handleLogout = () => {
-        sessionStorage.removeItem('admin_auth');
-        setAuthenticated(false);
-    };
+    if (session === undefined) return null;
 
-    return authenticated
+    return session
         ? <AdminPanel onLogout={handleLogout} />
-        : <AdminLogin onLogin={handleLogin} />;
+        : <AdminLogin />;
 }
