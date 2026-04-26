@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { supabase } from '../supabaseClient';
 
@@ -188,13 +188,14 @@ function EditModal({ order, onClose, onSaved }) {
 
 /* ─── Sección: Pedidos ─────────────────────────────────────────── */
 function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
-    const [filter, setFilter]       = useState('todos');
-    const [search, setSearch]       = useState('');
-    const [updating, setUpdating]   = useState(null);
-    const [emitting, setEmitting]   = useState(null);
-    const [selected, setSelected]   = useState([]);
-    const [editOrder, setEditOrder] = useState(null);
+    const [filter, setFilter]           = useState('todos');
+    const [search, setSearch]           = useState('');
+    const [updating, setUpdating]       = useState(null);
+    const [emitting, setEmitting]       = useState(null);
+    const [selected, setSelected]       = useState([]);
+    const [editOrder, setEditOrder]     = useState(null);
     const [vistaGrafico, setVistaGrafico] = useState('dia');
+    const [pendingNotif, setPendingNotif] = useState(null);
 
     const filtered = orders.filter(o => {
         const estado = o.estado || 'pendiente';
@@ -212,21 +213,35 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
     const toggleOne = (id) =>
         setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
-    const updateEstado = async (id, nuevoEstado) => {
-        // 1. Guardar el valor previo por si hay que revertir
-        const prevEstado = orders.find(o => o.id === id)?.estado || 'pendiente';
+    const notificarWA = (order, estado) => {
+        const phone = order.telefono;
+        if (!phone) return;
+        const msgs = {
+            'pendiente':  'Tu pedido está registrado y en espera de confirmación.',
+            'pagado':     '✅ ¡Tu pago fue confirmado! Ya estamos procesando tu pedido.',
+            'en proceso': '🔧 ¡Estamos preparando tu pedido! Pronto estará listo.',
+            'entregado':  '📦 ¡Tu pedido ha sido entregado! Gracias por elegirnos.',
+            'cancelado':  '❌ Lamentamos informarte que tu pedido fue cancelado. Contáctanos para más información.',
+        };
+        const msg = `Hola ${order.nombre || 'cliente'}, te informamos que tu pedido ha sido actualizado.\n\n📋 *Estado:* ${estado.toUpperCase()}\n${msgs[estado] || ''}\n\n🛍️ *Pedido:* ${order.producto} (${order.cantidad_docenas} doc.) — S/ ${(order.total_soles || 0).toFixed(2)}\n\n_M&V Technology Textil S.A.C._`;
+        window.open(`https://wa.me/51${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    };
 
-        // 2. Actualización optimista: el color cambia INSTANTÁNEAMENTE
+    const updateEstado = async (id, nuevoEstado) => {
+        const order = orders.find(o => o.id === id);
+        const prevEstado = order?.estado || 'pendiente';
+
         setOrders(prev => prev.map(o => o.id === id ? { ...o, estado: nuevoEstado } : o));
         setUpdating(id);
 
-        // 3. Persistir en Supabase
         const { error } = await supabase.from('ventas').update({ estado: nuevoEstado }).eq('id', id);
 
         if (error) {
-            // 4. Si falla, revertir al estado anterior
             setOrders(prev => prev.map(o => o.id === id ? { ...o, estado: prevEstado } : o));
             alert('No se pudo actualizar el estado. Intenta de nuevo.');
+        } else if (order?.telefono) {
+            setPendingNotif({ order: { ...order, estado: nuevoEstado }, estado: nuevoEstado });
+            setTimeout(() => setPendingNotif(null), 6000);
         }
         setUpdating(null);
     };
@@ -319,6 +334,22 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
                     onSaved={handleSaved}
                 />
             )}
+
+            {/* Toast de notificación WA */}
+            {pendingNotif && (
+                <div className="ap-wa-toast">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#25D366">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                        <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.848L0 24l6.335-1.508A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.886 0-3.655-.498-5.187-1.367l-.372-.22-3.762.896.952-3.658-.242-.386A9.944 9.944 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+                    </svg>
+                    <span>Estado actualizado — <strong>{pendingNotif.order.nombre}</strong> tiene celular registrado</span>
+                    <button className="ap-wa-toast-btn" onClick={() => { notificarWA(pendingNotif.order, pendingNotif.estado); setPendingNotif(null); }}>
+                        Enviar notificación
+                    </button>
+                    <button className="ap-wa-toast-close" onClick={() => setPendingNotif(null)}>✕</button>
+                </div>
+            )}
+
             {/* Stats cards */}
             <div className="ap-stats">
                 <StatCard label="Total Pedidos"  value={orders.length}           growth="+12%" positive icon="orders" />
@@ -571,33 +602,159 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
 }
 
 /* ─── Sección: Métricas ────────────────────────────────────────── */
+const DATE_OPTIONS = [
+    { id: '7d',  label: '7 días' },
+    { id: '30d', label: '30 días' },
+    { id: '3m',  label: '3 meses' },
+    { id: 'all', label: 'Todo' },
+];
+
 function MetricasSection({ orders }) {
-    const byProduct = orders.reduce((acc, o) => {
-        acc[o.producto] = (acc[o.producto] || 0) + (o.total_soles || 0);
+    const [dateRange, setDateRange] = useState('30d');
+
+    const filtered = useMemo(() => {
+        const base = orders.filter(o => (o.estado || 'pendiente') !== 'cancelado');
+        if (dateRange === 'all') return base;
+        const cutoff = new Date();
+        if (dateRange === '7d')  cutoff.setDate(cutoff.getDate() - 7);
+        if (dateRange === '30d') cutoff.setDate(cutoff.getDate() - 30);
+        if (dateRange === '3m')  cutoff.setMonth(cutoff.getMonth() - 3);
+        return base.filter(o => o.fecha_creacion && new Date(o.fecha_creacion) >= cutoff);
+    }, [orders, dateRange]);
+
+    const totalRevenue = filtered.reduce((s, o) => s + (o.total_soles || 0), 0);
+    const avgPerOrder  = filtered.length ? totalRevenue / filtered.length : 0;
+
+    const byProduct  = filtered.reduce((acc, o) => {
+        if (o.producto) acc[o.producto] = (acc[o.producto] || 0) + (o.total_soles || 0);
         return acc;
     }, {});
-    const topProducts = Object.entries(byProduct)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 6);
-    const maxVal = topProducts[0]?.[1] || 1;
+    const topProducts = Object.entries(byProduct).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const maxVal      = topProducts[0]?.[1] || 1;
+    const bestProduct = topProducts[0]?.[0] ?? '—';
+
+    const chartData = filtered
+        .filter(o => o.fecha_creacion)
+        .reduce((acc, order) => {
+            const d = new Date(order.fecha_creacion);
+            let label, sortKey;
+            if (dateRange === '7d' || dateRange === '30d') {
+                label   = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}`;
+                sortKey = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+            } else {
+                const mn = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+                label   = `${mn[d.getMonth()]} ${d.getFullYear()}`;
+                sortKey = new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+            }
+            const ex = acc.find(x => x._k === sortKey);
+            if (ex) ex.total += (order.total_soles || 0);
+            else acc.push({ date: label, total: order.total_soles || 0, _k: sortKey });
+            return acc;
+        }, [])
+        .sort((a, b) => a._k - b._k)
+        .map(({ date, total }) => ({ date, total }));
+
+    // Product alerts: all unique products whose last sale is > 30 days ago
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const alertProducts = [...new Set(orders.map(o => o.producto).filter(Boolean))]
+        .map(prod => {
+            const dates = orders
+                .filter(o => o.producto === prod && o.fecha_creacion)
+                .map(o => new Date(o.fecha_creacion));
+            const lastSale = dates.length ? new Date(Math.max(...dates)) : null;
+            return { prod, lastSale };
+        })
+        .filter(({ lastSale }) => !lastSale || lastSale < thirtyDaysAgo);
 
     return (
         <div className="ap-metricas">
-            <h2 className="ap-section-heading">Métricas de Ventas</h2>
+            {/* Header + date filter */}
+            <div className="ap-m-header">
+                <h2 className="ap-section-heading" style={{ marginBottom: 0 }}>Métricas de Ventas</h2>
+                <div className="ap-date-filters">
+                    {DATE_OPTIONS.map(o => (
+                        <button
+                            key={o.id}
+                            className={`ap-date-btn ${dateRange === o.id ? 'active' : ''}`}
+                            onClick={() => setDateRange(o.id)}
+                        >
+                            {o.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* KPI row */}
+            <div className="ap-m-kpi-row">
+                <div className="ap-m-kpi">
+                    <span className="ap-m-kpi-label">Ingresos del período</span>
+                    <span className="ap-m-kpi-value">S/ {totalRevenue.toFixed(2)}</span>
+                </div>
+                <div className="ap-m-kpi">
+                    <span className="ap-m-kpi-label">Ticket promedio</span>
+                    <span className="ap-m-kpi-value">S/ {avgPerOrder.toFixed(2)}</span>
+                </div>
+                <div className="ap-m-kpi">
+                    <span className="ap-m-kpi-label">Pedidos</span>
+                    <span className="ap-m-kpi-value">{filtered.length}</span>
+                </div>
+                <div className="ap-m-kpi">
+                    <span className="ap-m-kpi-label">Top producto</span>
+                    <span className="ap-m-kpi-value ap-m-kpi-value--sm">{bestProduct}</span>
+                </div>
+            </div>
+
+            {/* Revenue chart */}
+            <div className="ap-chart-placeholder">
+                <div className="ap-chart-header">
+                    <div>
+                        <h3>Ingresos por período</h3>
+                        <p>Ventas no canceladas · {DATE_OPTIONS.find(o => o.id === dateRange)?.label}</p>
+                    </div>
+                </div>
+                {chartData.length > 0 ? (
+                    <div style={{ width: '100%', height: 220, marginTop: '.5rem' }}>
+                        <ResponsiveContainer width="99%" height="100%">
+                            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="mColorTotal" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%"  stopColor="#10B981" stopOpacity={0.35}/>
+                                        <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 11 }} dy={10} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 11 }}
+                                    tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
+                                <Tooltip
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                    formatter={(v) => [`S/ ${v.toFixed(2)}`, 'Ingresos']}
+                                />
+                                <Area type="monotone" dataKey="total" stroke="#10B981" strokeWidth={3}
+                                    fillOpacity={1} fill="url(#mColorTotal)" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 220 }}>
+                        <p style={{ color: '#94A3B8', fontSize: '.85rem' }}>Sin ventas en este período</p>
+                    </div>
+                )}
+            </div>
+
+            {/* Top productos + Estado */}
             <div className="ap-metricas-grid">
                 <div className="ap-metrics-card">
                     <h3>Top Productos por Ingreso</h3>
                     <div className="ap-product-bars">
                         {topProducts.length === 0 ? (
-                            <p className="ap-no-data">Sin datos aún</p>
+                            <p className="ap-no-data">Sin datos en este período</p>
                         ) : topProducts.map(([name, total]) => (
                             <div key={name} className="ap-prod-row">
                                 <span className="ap-prod-name">{name}</span>
                                 <div className="ap-prod-bar-track">
-                                    <div
-                                        className="ap-prod-bar-fill"
-                                        style={{ width: `${(total / maxVal) * 100}%` }}
-                                    />
+                                    <div className="ap-prod-bar-fill" style={{ width: `${(total / maxVal) * 100}%` }} />
                                 </div>
                                 <span className="ap-prod-val">S/ {total.toFixed(0)}</span>
                             </div>
@@ -625,6 +782,33 @@ function MetricasSection({ orders }) {
                     </div>
                 </div>
             </div>
+
+            {/* Product alerts */}
+            {alertProducts.length > 0 && (
+                <div className="ap-alert-section">
+                    <div className="ap-alert-header">
+                        <svg width="16" height="16" fill="none" stroke="#D97706" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>Productos sin ventas en los últimos 30 días</span>
+                        <span className="ap-alert-count">{alertProducts.length}</span>
+                    </div>
+                    <div className="ap-alert-list">
+                        {alertProducts.map(({ prod, lastSale }) => (
+                            <div key={prod} className="ap-alert-item">
+                                <span className="ap-alert-dot" />
+                                <span className="ap-alert-name">{prod}</span>
+                                <span className="ap-alert-last">
+                                    {lastSale
+                                        ? `Última venta: ${lastSale.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: '2-digit' })}`
+                                        : 'Sin ventas registradas'}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

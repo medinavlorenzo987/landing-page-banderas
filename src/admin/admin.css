@@ -399,9 +399,92 @@ body { font-family: 'Inter', 'Poppins', sans-serif; background: #F1F5F9; color: 
 .ap-state-box { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .8rem; padding: 4rem 2rem; color: #94A3B8; font-size: .9rem; }
 .ap-spinner   { width: 32px; height: 32px; border: 3px solid #E2E8F0; border-top-color: #6366F1; border-radius: 50%; animation: spin 1s linear infinite; }
 
+/* ── WA Toast ───────────────────────────────────────────────────── */
+.ap-wa-toast {
+    position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 500;
+    display: flex; align-items: center; gap: .75rem;
+    background: #fff; border: 1.5px solid #D1FAE5;
+    border-radius: 14px; padding: .9rem 1.2rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,.12);
+    max-width: 420px; animation: fadeIn .3s ease;
+}
+.ap-wa-toast span  { font-size: .85rem; color: #1E293B; flex: 1; }
+.ap-wa-toast-btn {
+    background: #25D366; color: #fff; border: none; border-radius: 8px;
+    padding: .45rem .9rem; font-size: .8rem; font-weight: 700;
+    font-family: inherit; cursor: pointer; white-space: nowrap;
+    transition: opacity .2s;
+}
+.ap-wa-toast-btn:hover { opacity: .85; }
+.ap-wa-toast-close {
+    background: none; border: none; color: #94A3B8;
+    cursor: pointer; font-size: .9rem; padding: 0 2px;
+    line-height: 1; transition: color .2s;
+}
+.ap-wa-toast-close:hover { color: #475569; }
+
 /* ── Métricas ───────────────────────────────────────────────────── */
 .ap-section-heading { font-size: 1.1rem; font-weight: 800; color: #0F172A; margin-bottom: 1.2rem; }
 
+/* Header row: title + date filter */
+.ap-m-header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: .75rem; margin-bottom: 1.2rem;
+}
+
+/* Date filter buttons */
+.ap-date-filters { display: flex; gap: .4rem; flex-wrap: wrap; }
+.ap-date-btn {
+    padding: .38rem .9rem; border-radius: 20px;
+    border: 1.5px solid #E2E8F0; background: #fff;
+    font-size: .8rem; font-weight: 700; color: #64748B;
+    cursor: pointer; font-family: inherit; transition: all .2s;
+    white-space: nowrap;
+}
+.ap-date-btn:hover  { border-color: #94A3B8; color: #1E293B; }
+.ap-date-btn.active { background: #0F172A; color: #fff; border-color: #0F172A; }
+
+/* KPI row */
+.ap-m-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+.ap-m-kpi {
+    background: #fff; border-radius: 14px; padding: 1.1rem 1.2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05); border: 1px solid #F1F5F9;
+    display: flex; flex-direction: column; gap: .4rem;
+}
+.ap-m-kpi-label { font-size: .72rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: .04em; }
+.ap-m-kpi-value { font-size: 1.35rem; font-weight: 900; color: #0F172A; line-height: 1.1; }
+.ap-m-kpi-value--sm { font-size: .92rem; font-weight: 700; color: #1E293B; }
+
+/* Product alerts */
+.ap-alert-section {
+    background: #FFFBEB; border: 1.5px solid #FDE68A; border-radius: 14px;
+    overflow: hidden;
+}
+.ap-alert-header {
+    display: flex; align-items: center; gap: .6rem;
+    padding: .85rem 1.2rem; border-bottom: 1px solid #FDE68A;
+    font-size: .85rem; font-weight: 700; color: #92400E;
+}
+.ap-alert-count {
+    margin-left: auto; background: #F59E0B; color: #fff;
+    font-size: .72rem; font-weight: 800; padding: .15rem .55rem;
+    border-radius: 20px;
+}
+.ap-alert-list { display: flex; flex-direction: column; }
+.ap-alert-item {
+    display: flex; align-items: center; gap: .8rem;
+    padding: .65rem 1.2rem; border-bottom: 1px solid #FEF3C7;
+}
+.ap-alert-item:last-child { border-bottom: none; }
+.ap-alert-dot  { width: 8px; height: 8px; border-radius: 50%; background: #F59E0B; flex-shrink: 0; }
+.ap-alert-name { font-size: .85rem; font-weight: 700; color: #1E293B; flex: 1; }
+.ap-alert-last { font-size: .75rem; color: #92400E; white-space: nowrap; }
+
+.ap-metricas        { display: flex; flex-direction: column; gap: 1.4rem; }
 .ap-metricas-grid   { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
 .ap-metrics-card    { background: #fff; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,.05); border: 1px solid #F1F5F9; }
 .ap-metrics-card h3 { font-size: .95rem; font-weight: 800; color: #0F172A; margin-bottom: 1.2rem; }
@@ -595,6 +678,10 @@ body { font-family: 'Inter', 'Poppins', sans-serif; background: #F1F5F9; color: 
 
     /* Métricas */
     .ap-section-heading { font-size: 1rem; }
+    .ap-m-header { flex-direction: column; align-items: flex-start; }
+    .ap-m-kpi-row { grid-template-columns: repeat(2, 1fr); gap: .7rem; }
+    .ap-m-kpi { padding: .9rem 1rem; border-radius: 12px; }
+    .ap-m-kpi-value { font-size: 1.15rem; }
     .ap-metricas-grid { grid-template-columns: 1fr; gap: 1rem; }
     .ap-metrics-card { padding: 1.2rem; border-radius: 12px; }
     .ap-metrics-card h3 { font-size: .88rem; }
@@ -602,6 +689,10 @@ body { font-family: 'Inter', 'Poppins', sans-serif; background: #F1F5F9; color: 
     .ap-prod-val { font-size: .72rem; }
     .ap-donut-label { min-width: 70px; font-size: .75rem; }
     .ap-donut-pct { font-size: .72rem; }
+    .ap-alert-header { font-size: .8rem; }
+    .ap-alert-name { font-size: .8rem; }
+    .ap-alert-last { font-size: .7rem; }
+    .ap-wa-toast { bottom: 1rem; right: 1rem; left: 1rem; max-width: unset; }
 
     /* Logística */
     .ap-coming-card { padding: 2.5rem 1.5rem; border-radius: 12px; }

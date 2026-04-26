@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
 export default function CartModal({ cart, onClose, onConfirm, onOpenLegal, onUpdateQuantity, onRemoveItem }) {
-    const [form, setForm] = useState({ name: '', dni: '', address: '' });
+    const [form, setForm] = useState({ name: '', dni: '', address: '', phone: '' });
     const [errors, setErrors] = useState({});
     const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -38,6 +38,7 @@ export default function CartModal({ cart, onClose, onConfirm, onOpenLegal, onUpd
                 nombre: form.name,
                 dni: form.dni,
                 direccion: form.address,
+                telefono: form.phone || null,
             }))
         ).then(({ error }) => {
             if (error) console.error('Error al registrar pedido:', error);
@@ -184,6 +185,26 @@ export default function CartModal({ cart, onClose, onConfirm, onOpenLegal, onUpd
                                     className={errors.address ? 'input-error' : ''}
                                 />
                                 {errors.address && <span className="field-error">{errors.address}</span>}
+                            </div>
+
+                            <div className="modal-field">
+                                <label htmlFor="modal-phone">
+                                    Celular
+                                    <span className="modal-field-optional"> (opcional — para notificarte del estado)</span>
+                                </label>
+                                <div className="login-phone-wrap">
+                                    <span className="login-phone-prefix">+51</span>
+                                    <input
+                                        id="modal-phone"
+                                        type="tel"
+                                        inputMode="numeric"
+                                        placeholder="987 654 321"
+                                        maxLength={9}
+                                        value={form.phone}
+                                        onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 9) })}
+                                        className="login-phone-input"
+                                    />
+                                </div>
                             </div>
 
                             {/* ── CHECKBOX LEGAL ── */}

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { supabase } from '../supabaseClient';
 
 export default function ProductCard({ product, onAddToCart }) {
     const [qty, setQty] = useState(1);
@@ -11,14 +10,6 @@ export default function ProductCard({ product, onAddToCart }) {
 
     const handleComprar = () => {
         onAddToCart(product.title || product.name, product.price, qty);
-
-        supabase.from('ventas').insert([{
-            producto: product.title,
-            cantidad_docenas: qty,
-            total_soles: product.price * qty,
-        }]).then(({ error }) => {
-            if (error) console.error('Error al registrar:', error);
-        });
     };
 
     const badgeClass = `product-badge product-badge--${product.badgeVariant || 'dark'}`;
