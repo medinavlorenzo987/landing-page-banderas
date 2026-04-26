@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { supabase } from '../supabaseClient';
 
-const ESTADOS = ['pendiente', 'en proceso', 'entregado', 'cancelado'];
+const ESTADOS = ['pendiente', 'pagado', 'en proceso', 'entregado', 'cancelado'];
 
 const ESTADO_META = {
     'pendiente':  { bg: '#FEF3C7', color: '#92400E', dot: '#F59E0B' },
+    'pagado':     { bg: '#E0E7FF', color: '#3730A3', dot: '#4F46E5' },
     'en proceso': { bg: '#DBEAFE', color: '#1E40AF', dot: '#3B82F6' },
     'entregado':  { bg: '#D1FAE5', color: '#065F46', dot: '#10B981' },
     'cancelado':  { bg: '#FEE2E2', color: '#991B1B', dot: '#EF4444' },
@@ -60,12 +62,139 @@ function exportToCSV(rows) {
     URL.revokeObjectURL(url);
 }
 
+/* ─── Modal de Edición ──────────────────────────────────── */
+function EditModal({ order, onClose, onSaved }) {
+    const PRODUCTOS = [
+        'BANDERAS 60x90', 'BANDERAS 90x150', 'BANDERINES DE ESCRITORIO',
+        'BANDERAS BORDADAS', 'BANDERAS PERSONALIZADAS', 'ROLLOS DE TELA',
+    ];
+
+    const [form, setForm] = useState({
+        nombre:          order.nombre         || '',
+        dni:             order.dni            || '',
+        direccion:       order.direccion      || '',
+        producto:        order.producto       || '',
+        cantidad_docenas: order.cantidad_docenas ?? '',
+        total_soles:     order.total_soles    ?? '',
+    });
+    const [saving, setSaving] = useState(false);
+    const [error, setError]   = useState('');
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        setError('');
+        const payload = {
+            nombre:           form.nombre.trim(),
+            dni:              form.dni.trim(),
+            direccion:        form.direccion.trim(),
+            producto:         form.producto,
+            cantidad_docenas: parseFloat(form.cantidad_docenas) || 0,
+            total_soles:      parseFloat(form.total_soles)      || 0,
+        };
+        const { error: supaErr } = await supabase
+            .from('ventas')
+            .update(payload)
+            .eq('id', order.id);
+        if (supaErr) {
+            setError('Error al guardar: ' + supaErr.message);
+            setSaving(false);
+        } else {
+            // Pasamos el payload al padre para actualizar el estado local sin refetch
+            onSaved(payload);
+        }
+    };
+
+    // Cerrar con Escape
+    useEffect(() => {
+        const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
+        window.addEventListener('keydown', handleKey);
+        return () => window.removeEventListener('keydown', handleKey);
+    }, [onClose]);
+
+    return (
+        <div className="ap-modal-backdrop" onClick={onClose}>
+            <div className="ap-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+                {/* Header */}
+                <div className="ap-modal-header">
+                    <div>
+                        <h2 className="ap-modal-title">Editar Pedido</h2>
+                        <p className="ap-modal-sub">ID: {order.id}</p>
+                    </div>
+                    <button className="ap-modal-close" onClick={onClose} aria-label="Cerrar">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Form */}
+                <form className="ap-modal-form" onSubmit={handleSubmit}>
+                    <div className="ap-modal-grid">
+                        <div className="ap-modal-field">
+                            <label htmlFor="edit-nombre">Nombre del Cliente</label>
+                            <input id="edit-nombre" name="nombre" type="text" value={form.nombre}
+                                onChange={handleChange} placeholder="Nombre completo" required />
+                        </div>
+                        <div className="ap-modal-field">
+                            <label htmlFor="edit-dni">DNI</label>
+                            <input id="edit-dni" name="dni" type="text" maxLength="8" value={form.dni}
+                                onChange={handleChange} placeholder="12345678" />
+                        </div>
+                        <div className="ap-modal-field ap-modal-full">
+                            <label htmlFor="edit-direccion">Dirección</label>
+                            <input id="edit-direccion" name="direccion" type="text" value={form.direccion}
+                                onChange={handleChange} placeholder="Av. Ejemplo 123, Lima" />
+                        </div>
+                        <div className="ap-modal-field ap-modal-full">
+                            <label htmlFor="edit-producto">Producto</label>
+                            <select id="edit-producto" name="producto" value={form.producto} onChange={handleChange} required>
+                                <option value="" disabled>Selecciona un producto</option>
+                                {PRODUCTOS.map(p => <option key={p} value={p}>{p}</option>)}
+                            </select>
+                        </div>
+                        <div className="ap-modal-field">
+                            <label htmlFor="edit-docenas">Docenas</label>
+                            <input id="edit-docenas" name="cantidad_docenas" type="number" min="0" step="0.5"
+                                value={form.cantidad_docenas} onChange={handleChange} required />
+                        </div>
+                        <div className="ap-modal-field">
+                            <label htmlFor="edit-total">Total (S/)</label>
+                            <input id="edit-total" name="total_soles" type="number" min="0" step="0.01"
+                                value={form.total_soles} onChange={handleChange} required />
+                        </div>
+                    </div>
+
+                    {error && <p className="ap-modal-error">{error}</p>}
+
+                    <div className="ap-modal-actions">
+                        <button type="button" className="ap-modal-btn-cancel" onClick={onClose} disabled={saving}>
+                            Cancelar
+                        </button>
+                        <button type="submit" className="ap-modal-btn-save" disabled={saving}>
+                            {saving ? 'Guardando...' : 'Guardar Cambios'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
 /* ─── Sección: Pedidos ─────────────────────────────────────────── */
-function PedidosSection({ orders, loading, onRefresh, onLogout }) {
+function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
     const [filter, setFilter]       = useState('todos');
     const [search, setSearch]       = useState('');
     const [updating, setUpdating]   = useState(null);
+    const [emitting, setEmitting]   = useState(null);
     const [selected, setSelected]   = useState([]);
+    const [editOrder, setEditOrder] = useState(null);
+    const [vistaGrafico, setVistaGrafico] = useState('dia');
 
     const filtered = orders.filter(o => {
         const estado = o.estado || 'pendiente';
@@ -83,11 +212,46 @@ function PedidosSection({ orders, loading, onRefresh, onLogout }) {
     const toggleOne = (id) =>
         setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
-    const updateEstado = async (id, estado) => {
+    const updateEstado = async (id, nuevoEstado) => {
+        // 1. Guardar el valor previo por si hay que revertir
+        const prevEstado = orders.find(o => o.id === id)?.estado || 'pendiente';
+
+        // 2. Actualización optimista: el color cambia INSTANTÁNEAMENTE
+        setOrders(prev => prev.map(o => o.id === id ? { ...o, estado: nuevoEstado } : o));
         setUpdating(id);
-        const { error } = await supabase.from('ventas').update({ estado }).eq('id', id);
-        if (!error) onRefresh();
+
+        // 3. Persistir en Supabase
+        const { error } = await supabase.from('ventas').update({ estado: nuevoEstado }).eq('id', id);
+
+        if (error) {
+            // 4. Si falla, revertir al estado anterior
+            setOrders(prev => prev.map(o => o.id === id ? { ...o, estado: prevEstado } : o));
+            alert('No se pudo actualizar el estado. Intenta de nuevo.');
+        }
         setUpdating(null);
+    };
+
+    const emitirBoleta = async (id) => {
+        if (!window.confirm("¿Seguro que deseas emitir una boleta electrónica para este pedido? Esta acción es irreversible en Nubefact.")) return;
+        setEmitting(id);
+        try {
+            const { data, error } = await supabase.functions.invoke('emitir-boleta', {
+                body: { orderId: id }
+            });
+            if (error) throw error;
+            if (data?.error) throw new Error(data.error);
+            // Actualiza solo la URL del comprobante y el estado en el estado local
+            if (data?.comprobante_url) {
+                setOrders(prev => prev.map(o =>
+                    o.id === id ? { ...o, comprobante_url: data.comprobante_url, estado: 'pagado' } : o
+                ));
+            }
+        } catch (err) {
+            console.error("Error emitiendo boleta:", err);
+            alert("Error al emitir boleta: " + err.message);
+        } finally {
+            setEmitting(null);
+        }
     };
 
     const handleExport = () => {
@@ -102,8 +266,59 @@ function PedidosSection({ orders, loading, onRefresh, onLogout }) {
         .filter(o => (o.estado || 'pendiente') !== 'cancelado')
         .reduce((s, o) => s + (o.total_soles || 0), 0);
 
+    const handleSaved = (updatedFields) => {
+        // Fusiona los campos editados en el estado local sin refetch
+        setOrders(prev => prev.map(o =>
+            o.id === editOrder.id ? { ...o, ...updatedFields } : o
+        ));
+        setEditOrder(null);
+    };
+
+    // Procesar datos para el gráfico: agrupar total dinámicamente
+    const chartData = orders
+        .filter(o => (o.estado || 'pendiente') !== 'cancelado' && o.fecha_creacion)
+        .reduce((acc, order) => {
+            const dateObj = new Date(order.fecha_creacion);
+            let dateStr = '';
+            let sortDate = 0;
+
+            if (vistaGrafico === 'dia') {
+                const day = dateObj.getDate().toString().padStart(2, '0');
+                const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+                dateStr = `${day}/${month}`;
+                sortDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()).getTime();
+            } else if (vistaGrafico === 'mes') {
+                const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                const month = monthNames[dateObj.getMonth()];
+                const year = dateObj.getFullYear();
+                dateStr = `${month} ${year}`;
+                sortDate = new Date(year, dateObj.getMonth(), 1).getTime();
+            } else if (vistaGrafico === 'año') {
+                const year = dateObj.getFullYear();
+                dateStr = `${year}`;
+                sortDate = new Date(year, 0, 1).getTime();
+            }
+            
+            const existing = acc.find(item => item.date === dateStr);
+            if (existing) {
+                existing.total += (order.total_soles || 0);
+            } else {
+                acc.push({ date: dateStr, total: (order.total_soles || 0), sortDate });
+            }
+            return acc;
+        }, [])
+        .sort((a, b) => a.sortDate - b.sortDate)
+        .map(item => ({ date: item.date, total: item.total })); // limpiar campo sortDate
+
     return (
         <>
+            {editOrder && (
+                <EditModal
+                    order={editOrder}
+                    onClose={() => setEditOrder(null)}
+                    onSaved={handleSaved}
+                />
+            )}
             {/* Stats cards */}
             <div className="ap-stats">
                 <StatCard label="Total Pedidos"  value={orders.length}           growth="+12%" positive icon="orders" />
@@ -113,25 +328,68 @@ function PedidosSection({ orders, loading, onRefresh, onLogout }) {
                 <StatCard label="Entregados"     value={countBy('entregado')}    growth="+22%" positive icon="done" />
             </div>
 
-            {/* Chart placeholder */}
+            {/* Gráfico de Ventas */}
             <div className="ap-chart-placeholder">
-                <div className="ap-chart-header">
+                <div className="ap-chart-header" style={{ alignItems: 'center' }}>
                     <div>
-                        <h3>Gráfico de Ventas</h3>
-                        <p>Evolución de ingresos — próximamente</p>
+                        <h3>Resumen de Ventas</h3>
+                        <p>Evolución de ingresos</p>
                     </div>
-                    <span className="ap-badge-coming">Próximamente</span>
+                    <select 
+                        className="ap-estado-select" 
+                        value={vistaGrafico} 
+                        onChange={(e) => setVistaGrafico(e.target.value)}
+                        style={{ background: '#F1F5F9', color: '#475569', fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
+                    >
+                        <option value="dia">Por Día</option>
+                        <option value="mes">Por Mes</option>
+                        <option value="año">Por Año</option>
+                    </select>
                 </div>
-                <div className="ap-chart-bars">
-                    {[40, 65, 45, 80, 55, 90, 70, 85, 60, 95, 75, 100].map((h, i) => (
-                        <div key={i} className="ap-bar-col">
-                            <div className="ap-bar" style={{ height: `${h}%` }} />
-                            <span className="ap-bar-label">
-                                {['E','F','M','A','M','J','J','A','S','O','N','D'][i]}
-                            </span>
-                        </div>
-                    ))}
-                </div>
+                {chartData.length > 0 ? (
+                    <div style={{ width: '100%', height: 250, marginTop: '1rem' }}>
+                        <ResponsiveContainer width="99%" height="100%">
+                            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.4}/>
+                                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                                <XAxis 
+                                    dataKey="date" 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: '#94A3B8', fontSize: 11 }} 
+                                    dy={10} 
+                                />
+                                <YAxis 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: '#94A3B8', fontSize: 11 }} 
+                                    tickFormatter={(value) => value >= 1000 ? `${(value/1000).toFixed(1)}k` : value}
+                                />
+                                <Tooltip 
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                    formatter={(value) => [`S/ ${value.toFixed(2)}`, 'Ingresos']}
+                                />
+                                <Area 
+                                    type="monotone" 
+                                    dataKey="total" 
+                                    stroke="#3B82F6" 
+                                    strokeWidth={3}
+                                    fillOpacity={1} 
+                                    fill="url(#colorTotal)" 
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                ) : (
+                    <div className="ap-chart-bars" style={{ justifyContent: 'center', alignItems: 'center', height: 250 }}>
+                        <p style={{ color: '#94A3B8' }}>No hay datos suficientes para graficar.</p>
+                    </div>
+                )}
             </div>
 
             {/* Toolbar */}
@@ -210,7 +468,9 @@ function PedidosSection({ orders, loading, onRefresh, onLogout }) {
                                 <th>Producto</th>
                                 <th>Doc.</th>
                                 <th>Total</th>
+                                <th>Comprobante</th>
                                 <th>Estado</th>
+                                <th>Editar</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -244,6 +504,21 @@ function PedidosSection({ orders, loading, onRefresh, onLogout }) {
                                         <td className="td-prod" data-label="Producto">{order.producto || '—'}</td>
                                         <td className="td-qty" data-label="Docenas">{order.cantidad_docenas ?? '—'}</td>
                                         <td className="td-total" data-label="Total">S/ {(order.total_soles || 0).toFixed(2)}</td>
+                                        <td data-label="Comprobante">
+                                            {order.comprobante_url ? (
+                                                <a href={order.comprobante_url} target="_blank" rel="noopener noreferrer" className="ap-btn-success">
+                                                    Ver PDF
+                                                </a>
+                                            ) : (
+                                                <button 
+                                                    className="ap-btn-danger" 
+                                                    onClick={() => emitirBoleta(order.id)}
+                                                    disabled={emitting === order.id}
+                                                >
+                                                    {emitting === order.id ? 'Emitiendo...' : 'Emitir Boleta'}
+                                                </button>
+                                            )}
+                                        </td>
                                         <td data-label="Estado">
                                             <select
                                                 className="ap-estado-select"
@@ -258,6 +533,25 @@ function PedidosSection({ orders, loading, onRefresh, onLogout }) {
                                                     </option>
                                                 ))}
                                             </select>
+                                        </td>
+                                        <td data-label="Editar">
+                                            {order.comprobante_url ? (
+                                                <span className="ap-edit-locked" title="No editable: boleta emitida">
+                                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                    </svg>
+                                                </span>
+                                            ) : (
+                                                <button
+                                                    className="ap-edit-btn"
+                                                    onClick={() => setEditOrder(order)}
+                                                    title="Editar pedido"
+                                                >
+                                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
                                 );
@@ -407,6 +701,16 @@ export default function AdminPanel({ onLogout }) {
         setLoading(false);
     }, []);
 
+    // Refresco silencioso: actualiza los datos sin activar el spinner de loading
+    // (evita el desmonte de la tabla y el salto de scroll)
+    const silentRefresh = useCallback(async () => {
+        const { data, error } = await supabase
+            .from('ventas')
+            .select('*')
+            .order('fecha_creacion', { ascending: false });
+        if (!error) setOrders(data || []);
+    }, []);
+
     useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
     const handleNavClick = (id) => {
@@ -499,7 +803,7 @@ export default function AdminPanel({ onLogout }) {
                 </header>
 
                 <div className="ap-content">
-                    {activeSection === 'pedidos'   && <PedidosSection  orders={orders} loading={loading} onRefresh={fetchOrders} onLogout={onLogout} />}
+                    {activeSection === 'pedidos'   && <PedidosSection  orders={orders} setOrders={setOrders} loading={loading} onRefresh={silentRefresh} onLogout={onLogout} />}
                     {activeSection === 'metricas'  && <MetricasSection  orders={orders} />}
                     {activeSection === 'logistica' && <LogisticaSection />}
                 </div>
