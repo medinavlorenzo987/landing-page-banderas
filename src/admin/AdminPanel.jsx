@@ -480,17 +480,18 @@ function EditModal({ order, onClose, onSaved }) {
 
 /* ─── Sección: Pedidos ─────────────────────────────────────────── */
 function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
-    const [filter, setFilter]             = useState('todos');
-    const [search, setSearch]             = useState('');
-    const [updating, setUpdating]         = useState(null);
-    const [emitting, setEmitting]         = useState(null);
-    const [selected, setSelected]         = useState([]);
+    const [filter, setFilter]               = useState('todos');
+    const [comprobanteFilter, setComprobanteFilter] = useState('todos');
+    const [search, setSearch]               = useState('');
+    const [updating, setUpdating]           = useState(null);
+    const [emitting, setEmitting]           = useState(null);
+    const [selected, setSelected]           = useState([]);
     const [editOrder, setEditOrder]         = useState(null);
     const [editGroup, setEditGroup]         = useState(null);
     const [emitirGroup, setEmitirGroup]     = useState(null);
     const [productosPopup, setProductosPopup] = useState(null);
-    const [vistaGrafico, setVistaGrafico] = useState('dia');
-    const [pendingNotif, setPendingNotif] = useState(null);
+    const [vistaGrafico, setVistaGrafico]   = useState('dia');
+    const [pendingNotif, setPendingNotif]   = useState(null);
 
     // Agrupar filas por pedido_id → un pedido = un cliente con N productos
     const groupedOrders = useMemo(() => {
@@ -500,16 +501,18 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
             if (!groups[key]) {
                 groups[key] = {
                     key,
-                    hasPedidoId:  !!o.pedido_id,
-                    pedido_id:    o.pedido_id,
-                    nombre:       o.nombre,
-                    dni:          o.dni,
-                    ruc:          o.ruc,
-                    razon_social: o.razon_social,
-                    direccion:    o.direccion,
-                    telefono:     o.telefono,
-                    estado:       o.estado || 'pendiente',
-                    fecha_creacion: o.fecha_creacion,
+                    hasPedidoId:      !!o.pedido_id,
+                    pedido_id:        o.pedido_id,
+                    nombre:           o.nombre,
+                    dni:              o.dni,
+                    ruc:              o.ruc,
+                    razon_social:     o.razon_social,
+                    direccion:        o.direccion,
+                    telefono:         o.telefono,
+                    estado:           o.estado || 'pendiente',
+                    fecha_creacion:   o.fecha_creacion,
+                    comprobante_url:  o.comprobante_url  || null,
+                    comprobante_tipo: o.comprobante_tipo || null,
                     items: [],
                     ids:   [],
                     total: 0,
@@ -525,17 +528,24 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
     }, [orders]);
 
     const filtered = groupedOrders.filter(g => {
-        const matchFilter = filter === 'todos' || g.estado === filter;
-        const matchSearch = !search || [g.nombre, g.dni, g.direccion, ...g.items.map(i => i.producto)]
+        const matchEstado = filter === 'todos' || g.estado === filter;
+        const matchComp   = comprobanteFilter === 'todos'
+            || (comprobanteFilter === 'boleta'   && g.comprobante_tipo === 'boleta')
+            || (comprobanteFilter === 'factura'  && g.comprobante_tipo === 'factura')
+            || (comprobanteFilter === 'sin'      && !g.comprobante_url);
+        const matchSearch = !search || [g.nombre, g.dni, g.ruc, g.direccion, ...g.items.map(i => i.producto)]
             .some(v => v?.toLowerCase().includes(search.toLowerCase()));
-        return matchFilter && matchSearch;
+        return matchEstado && matchComp && matchSearch;
     });
 
     const allChecked = filtered.length > 0 && filtered.every(g => selected.includes(g.key));
     const toggleAll  = () => setSelected(allChecked ? [] : filtered.map(g => g.key));
     const toggleOne  = (key) => setSelected(prev => prev.includes(key) ? prev.filter(x => x !== key) : [...prev, key]);
 
-    const countBy = (e) => groupedOrders.filter(g => g.estado === e).length;
+    const countBy     = (e)    => groupedOrders.filter(g => g.estado === e).length;
+    const countByComp = (tipo) => tipo === 'sin'
+        ? groupedOrders.filter(g => !g.comprobante_url).length
+        : groupedOrders.filter(g => g.comprobante_tipo === tipo).length;
     const totalIngresos = orders
         .filter(o => (o.estado || 'pendiente') !== 'cancelado')
         .reduce((s, o) => s + (o.total_soles || 0), 0);
@@ -760,6 +770,26 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
                 </div>
             </div>
 
+            {/* Filtro comprobantes */}
+            <div className="ap-comp-filter-row">
+                <span className="ap-comp-filter-label">Comprobante:</span>
+                {[
+                    { id: 'todos',   label: 'Todos',      icon: '🗂' },
+                    { id: 'boleta',  label: 'Boletas',    icon: '🧾' },
+                    { id: 'factura', label: 'Facturas',   icon: '🏢' },
+                    { id: 'sin',     label: 'Sin emitir', icon: '⏳' },
+                ].map(({ id, label, icon }) => (
+                    <button key={id}
+                        className={`ap-comp-filter-btn ${comprobanteFilter === id ? 'active' : ''}`}
+                        onClick={() => { setComprobanteFilter(id); setSelected([]); }}>
+                        {icon} {label}
+                        <span className="ap-filter-count">
+                            {id === 'todos' ? groupedOrders.length : countByComp(id)}
+                        </span>
+                    </button>
+                ))}
+            </div>
+
             {/* Table */}
             <div className="ap-table-card">
                 {loading ? (
@@ -953,6 +983,29 @@ function MetricasSection({ orders }) {
         .sort((a, b) => a._k - b._k)
         .map(({ date, total }) => ({ date, total }));
 
+    // Métricas de comprobantes (sobre TODOS los pedidos, sin filtro de fecha)
+    const compStats = useMemo(() => {
+        const groups = {};
+        for (const o of orders) {
+            const key = o.pedido_id || `__${o.id}`;
+            if (!groups[key]) groups[key] = { tipo: null, total: 0, url: null };
+            groups[key].total += (o.total_soles || 0);
+            if (o.comprobante_url) { groups[key].url = o.comprobante_url; groups[key].tipo = o.comprobante_tipo; }
+        }
+        const list     = Object.values(groups);
+        const boletas  = list.filter(g => g.tipo === 'boleta');
+        const facturas = list.filter(g => g.tipo === 'factura');
+        const sinComp  = list.filter(g => !g.url);
+        const pctEmit  = list.length ? Math.round(((list.length - sinComp.length) / list.length) * 100) : 0;
+        return {
+            total:    list.length,
+            boletas:  { count: boletas.length,  revenue: boletas.reduce((s, g) => s + g.total, 0) },
+            facturas: { count: facturas.length, revenue: facturas.reduce((s, g) => s + g.total, 0) },
+            sinComp:  sinComp.length,
+            pctEmit,
+        };
+    }, [orders]);
+
     // Product alerts: all unique products whose last sale is > 30 days ago
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -1108,6 +1161,46 @@ function MetricasSection({ orders }) {
                     </div>
                 </div>
             )}
+
+            {/* ── Card comprobantes ── */}
+            <div className="ap-metrics-card ap-comp-card">
+                <h3>Comprobantes Electrónicos</h3>
+                <div className="ap-comp-progress-row">
+                    <span className="ap-comp-progress-label">{compStats.pctEmit}% emitidos</span>
+                    <div className="ap-comp-progress-track">
+                        <div className="ap-comp-progress-fill" style={{ width: `${compStats.pctEmit}%` }} />
+                    </div>
+                    <span className="ap-comp-progress-label" style={{ color: '#94A3B8' }}>
+                        {compStats.total - compStats.sinComp}/{compStats.total}
+                    </span>
+                </div>
+                <div className="ap-comp-stat-grid">
+                    <div className="ap-comp-stat ap-comp-stat--boleta">
+                        <div className="ap-comp-stat-top">
+                            <span className="ap-comp-stat-icon">🧾</span>
+                            <span className="ap-comp-stat-tipo">Boletas</span>
+                            <span className="ap-comp-stat-count">{compStats.boletas.count}</span>
+                        </div>
+                        <span className="ap-comp-stat-revenue">S/ {compStats.boletas.revenue.toFixed(2)}</span>
+                    </div>
+                    <div className="ap-comp-stat ap-comp-stat--factura">
+                        <div className="ap-comp-stat-top">
+                            <span className="ap-comp-stat-icon">🏢</span>
+                            <span className="ap-comp-stat-tipo">Facturas</span>
+                            <span className="ap-comp-stat-count">{compStats.facturas.count}</span>
+                        </div>
+                        <span className="ap-comp-stat-revenue">S/ {compStats.facturas.revenue.toFixed(2)}</span>
+                    </div>
+                    <div className="ap-comp-stat ap-comp-stat--sin">
+                        <div className="ap-comp-stat-top">
+                            <span className="ap-comp-stat-icon">⏳</span>
+                            <span className="ap-comp-stat-tipo">Sin emitir</span>
+                            <span className="ap-comp-stat-count">{compStats.sinComp}</span>
+                        </div>
+                        <span className="ap-comp-stat-revenue" style={{ color: '#94A3B8' }}>pendientes</span>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

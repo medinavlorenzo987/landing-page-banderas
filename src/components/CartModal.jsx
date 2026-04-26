@@ -14,6 +14,8 @@ export default function CartModal({ cart, onClose, onConfirm, onOpenLegal, onUpd
 
     const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+    const dniRequerido = !esEmpresa && total >= 700;
+
     const validate = () => {
         const e = {};
         if (esEmpresa) {
@@ -21,7 +23,11 @@ export default function CartModal({ cart, onClose, onConfirm, onOpenLegal, onUpd
             if (!/^\d{11}$/.test(form.ruc)) e.ruc = 'RUC debe tener 11 dígitos';
         } else {
             if (!form.name.trim()) e.name = 'Ingresa tu nombre';
-            if (!/^\d{8}$/.test(form.dni)) e.dni = 'DNI debe tener 8 dígitos';
+            if (dniRequerido) {
+                if (!/^\d{8}$/.test(form.dni)) e.dni = 'DNI obligatorio para compras de S/ 700 o más';
+            } else if (form.dni && !/^\d{8}$/.test(form.dni)) {
+                e.dni = 'DNI debe tener 8 dígitos';
+            }
         }
         if (!form.address.trim()) e.address = 'Ingresa tu dirección';
         if (!termsAccepted) e.terms = 'Debes aceptar los Términos y la Política de Privacidad para continuar';
@@ -208,7 +214,13 @@ export default function CartModal({ cart, onClose, onConfirm, onOpenLegal, onUpd
                                         {errors.name && <span className="field-error">{errors.name}</span>}
                                     </div>
                                     <div className="modal-field">
-                                        <label htmlFor="modal-dni">DNI</label>
+                                        <label htmlFor="modal-dni">
+                                            DNI
+                                            {dniRequerido
+                                                ? <span className="modal-field-required"> (obligatorio desde S/ 700)</span>
+                                                : <span className="modal-field-optional"> (opcional)</span>
+                                            }
+                                        </label>
                                         <input
                                             id="modal-dni"
                                             type="text"

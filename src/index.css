@@ -2990,6 +2990,10 @@ header {
     opacity: 0.65;
 }
 
+/* ── Labels opcionales / requeridos ──────────────────────────── */
+.modal-field-optional  { font-size: .75rem; color: #9CA3AF; font-weight: 400; }
+.modal-field-required  { font-size: .75rem; color: #DC2626; font-weight: 600; }
+
 /* ── Toggle Persona / Empresa ─────────────────────────────────── */
 .modal-type-toggle {
     display: flex;

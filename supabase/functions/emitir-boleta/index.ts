@@ -75,6 +75,11 @@ serve(async (req) => {
       : (firstRow.nombre || 'CLIENTE VARIOS');
     const clienteDir    = firstRow.direccion || '';
 
+    // Para boletas >= S/ 700 el DNI es obligatorio por SUNAT
+    if (!esFactura && totalSoles >= 700 && clienteDni.length !== 8) {
+      throw new Error("DNI obligatorio para boletas de S/ 700 o más (Reglamento de Comprobantes de Pago).");
+    }
+
     const clienteTipoDoc = esFactura
       ? '6'
       : (clienteDni.length === 8 ? '1' : '0');

@@ -394,6 +394,53 @@ body { font-family: 'Inter', 'Poppins', sans-serif; background: #F1F5F9; color: 
     white-space: nowrap;
 }
 
+/* ── Filtro comprobantes ────────────────────────────────────────── */
+.ap-comp-filter-row {
+    display: flex; align-items: center; flex-wrap: wrap; gap: .4rem;
+    padding: .6rem 0 .2rem;
+}
+.ap-comp-filter-label {
+    font-size: .72rem; font-weight: 700; color: #94A3B8;
+    text-transform: uppercase; letter-spacing: .05em;
+    margin-right: .2rem; white-space: nowrap;
+}
+.ap-comp-filter-btn {
+    display: inline-flex; align-items: center; gap: .35rem;
+    padding: .32rem .75rem; border-radius: 20px;
+    border: 1.5px solid #E2E8F0; background: #F8FAFC;
+    color: #64748B; font-size: .78rem; font-weight: 600;
+    cursor: pointer; transition: all .15s; font-family: inherit;
+}
+.ap-comp-filter-btn:hover { border-color: #CBD5E1; color: #1E293B; }
+.ap-comp-filter-btn.active { border-color: #3B82F6; background: #EFF6FF; color: #1D4ED8; }
+
+/* ── Card comprobantes en Métricas ─────────────────────────────── */
+.ap-comp-card { display: flex; flex-direction: column; gap: .9rem; }
+.ap-comp-progress-row { display: flex; align-items: center; gap: .6rem; }
+.ap-comp-progress-label { font-size: .75rem; font-weight: 700; color: #475569; white-space: nowrap; }
+.ap-comp-progress-track {
+    flex: 1; height: 8px; border-radius: 99px;
+    background: #F1F5F9; overflow: hidden;
+}
+.ap-comp-progress-fill {
+    height: 100%; border-radius: 99px;
+    background: linear-gradient(90deg, #10B981, #059669);
+    transition: width .4s ease;
+}
+.ap-comp-stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
+.ap-comp-stat {
+    border-radius: 12px; padding: .75rem .8rem;
+    display: flex; flex-direction: column; gap: .35rem;
+}
+.ap-comp-stat--boleta  { background: #F0FDF4; border: 1.5px solid #BBF7D0; }
+.ap-comp-stat--factura { background: #EFF6FF; border: 1.5px solid #BFDBFE; }
+.ap-comp-stat--sin     { background: #FFFBEB; border: 1.5px solid #FDE68A; }
+.ap-comp-stat-top { display: flex; align-items: center; gap: .35rem; }
+.ap-comp-stat-icon  { font-size: 1rem; line-height: 1; }
+.ap-comp-stat-tipo  { flex: 1; font-size: .75rem; font-weight: 700; color: #475569; }
+.ap-comp-stat-count { font-size: 1.1rem; font-weight: 800; color: #0F172A; }
+.ap-comp-stat-revenue { font-size: .78rem; font-weight: 700; color: #059669; padding-left: 1.6rem; }
+
 .ap-prod-badge {
     display: inline-flex; align-items: center; gap: .35rem;
     padding: .38rem .75rem; border-radius: 8px;
@@ -909,4 +956,9 @@ body { font-family: 'Inter', 'Poppins', sans-serif; background: #F1F5F9; color: 
     .ap-modal--sm { max-width: 100%; border-radius: 16px; }
 
     .ap-prod-badge { font-size: .76rem; padding: .32rem .6rem; }
+
+    .ap-comp-filter-row { gap: .3rem; }
+    .ap-comp-filter-btn { font-size: .72rem; padding: .28rem .6rem; }
+    .ap-comp-stat-grid { grid-template-columns: 1fr; }
+    .ap-comp-stat-revenue { padding-left: 1.4rem; }
 }
