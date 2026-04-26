@@ -23,31 +23,25 @@ export default function CartModal({ cart, onClose, onConfirm, onOpenLegal, onUpd
         return e;
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
         const e2 = validate();
         if (Object.keys(e2).length > 0) { setErrors(e2); return; }
 
-        const ventasParaRegistrar = cart.map(item => ({
-            producto: item.name,
-            cantidad_docenas: item.quantity,
-            total_soles: item.price * item.quantity,
-            nombre: form.name,
-            dni: form.dni,
-            direccion: form.address
-        }));
-
-        const { error } = await supabase
-            .from('ventas')
-            .insert(ventasParaRegistrar);
-
-        if (error) {
-            console.error('Error en el registro:', error);
-        } else {
-            console.log('Pedido registrado con éxito.');
-        }
-
         onConfirm(form);
+
+        supabase.from('ventas').insert(
+            cart.map(item => ({
+                producto: item.name,
+                cantidad_docenas: item.quantity,
+                total_soles: item.price * item.quantity,
+                nombre: form.name,
+                dni: form.dni,
+                direccion: form.address,
+            }))
+        ).then(({ error }) => {
+            if (error) console.error('Error al registrar pedido:', error);
+        });
     };
 
     const isEmpty = cart.length === 0;
