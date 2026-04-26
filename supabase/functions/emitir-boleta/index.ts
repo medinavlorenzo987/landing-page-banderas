@@ -61,9 +61,11 @@ serve(async (req) => {
     const firstRow  = rows[0];
     const esFactura = tipoComprobante === 'factura';
 
-    // Serie y número — ID de la primera fila, único por pedido
-    const serie  = esFactura ? 'F001' : 'B001';
-    const numero = firstRow.id;
+    // Serie y correlativo secuencial (atómico via RPC)
+    const serie = esFactura ? 'F001' : 'B001';
+    const { data: siguienteNum, error: numError } = await supabase.rpc('siguiente_numero_comprobante', { p_serie: serie });
+    if (numError) throw new Error(`Error obteniendo correlativo: ${numError.message}`);
+    const numero = siguienteNum as number;
 
     // Datos del cliente
     const clienteRuc    = (ruc || firstRow.ruc || '').replace(/\D/g, '');
