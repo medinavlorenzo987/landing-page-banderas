@@ -97,6 +97,11 @@
     outline-offset: 2px;
 }
 
+html,
+body {
+    overflow-x: hidden;
+}
+
 body {
     font-family: 'Poppins', sans-serif;
     background-color: var(--white);
@@ -2545,6 +2550,9 @@ header {
     .catalog-section { padding: 4rem 0 5rem; }
     .catalog-header { margin-bottom: 2rem; }
     .catalog-title { font-size: 2rem; }
+
+    /* Specs */
+    .specs-grid { grid-template-columns: 1fr; }
 
     /* Company Profile */
     .cp-hero { grid-template-columns: 1fr; padding: 3.5rem 1.5rem; gap: 2rem; }
