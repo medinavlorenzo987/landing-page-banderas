@@ -390,7 +390,8 @@ header {
 }
 
 .hero h1 {
-    text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+    color: #FFE8E8;
+    text-shadow: 0 2px 24px rgba(0,0,0,0.6);
 }
 
 .hero-eyebrow {
