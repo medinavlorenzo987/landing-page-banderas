@@ -46,9 +46,7 @@ serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
     const token = authHeader?.replace('Bearer ', '') ?? '';
-    console.log("authHeader presente:", !!authHeader, "token length:", token.length);
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
-    console.log("user:", user?.email, "userError:", userError?.message, "app_metadata:", JSON.stringify(user?.app_metadata));
     if (userError || !user) throw new Error("No autenticado.");
     const role = user.app_metadata?.role;
     if (role !== 'admin') throw new Error("Acceso denegado: se requiere rol admin.");

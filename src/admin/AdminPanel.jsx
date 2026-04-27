@@ -483,6 +483,7 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
     const [filter, setFilter]               = useState('todos');
     const [comprobanteFilter, setComprobanteFilter] = useState('todos');
     const [search, setSearch]               = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [updating, setUpdating]           = useState(null);
     const [emitting, setEmitting]           = useState(null);
     const [selected, setSelected]           = useState([]);
@@ -492,6 +493,11 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
     const [productosPopup, setProductosPopup] = useState(null);
     const [vistaGrafico, setVistaGrafico]   = useState('dia');
     const [pendingNotif, setPendingNotif]   = useState(null);
+
+    useEffect(() => {
+        const t = setTimeout(() => setDebouncedSearch(search), 300);
+        return () => clearTimeout(t);
+    }, [search]);
 
     // Agrupar filas por pedido_id → un pedido = un cliente con N productos
     const groupedOrders = useMemo(() => {
@@ -533,8 +539,8 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
             || (comprobanteFilter === 'boleta'   && g.comprobante_tipo === 'boleta')
             || (comprobanteFilter === 'factura'  && g.comprobante_tipo === 'factura')
             || (comprobanteFilter === 'sin'      && !g.comprobante_url);
-        const matchSearch = !search || [g.nombre, g.dni, g.ruc, g.direccion, ...g.items.map(i => i.producto)]
-            .some(v => v?.toLowerCase().includes(search.toLowerCase()));
+        const matchSearch = !debouncedSearch || [g.nombre, g.dni, g.ruc, g.direccion, ...g.items.map(i => i.producto)]
+            .some(v => v?.toLowerCase().includes(debouncedSearch.toLowerCase()));
         return matchEstado && matchComp && matchSearch;
     });
 
@@ -1272,18 +1278,18 @@ export default function AdminPanel({ onLogout }) {
         const { data, error } = await supabase
             .from('ventas')
             .select('*')
-            .order('fecha_creacion', { ascending: false });
+            .order('fecha_creacion', { ascending: false })
+            .limit(1000);
         if (!error) setOrders(data || []);
         setLoading(false);
     }, []);
 
-    // Refresco silencioso: actualiza los datos sin activar el spinner de loading
-    // (evita el desmonte de la tabla y el salto de scroll)
     const silentRefresh = useCallback(async () => {
         const { data, error } = await supabase
             .from('ventas')
             .select('*')
-            .order('fecha_creacion', { ascending: false });
+            .order('fecha_creacion', { ascending: false })
+            .limit(1000);
         if (!error) setOrders(data || []);
     }, []);
 
