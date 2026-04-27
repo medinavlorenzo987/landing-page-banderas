@@ -80,12 +80,12 @@ export default function ProductCatalog({ onAddToCart }) {
         <section className="catalog-section" id="catalogo">
             <div className="catalog-container">
                 <div className="catalog-header">
-                    <span className="catalog-eyebrow">Temporada 2025</span>
+                    <span className="catalog-eyebrow">Campaña Fiestas Patrias 2026</span>
                     <h2 className="catalog-title">
                         Elige tu Bandera
                         <img src="https://flagcdn.com/w40/pe.png" alt="Bandera de Perú" className="catalog-flag-img" />
                     </h2>
-                    <p className="catalog-subtitle">Precios por docena · Mínimo 1 docena · Despacho a todo Lima</p>
+                    <p className="catalog-subtitle">Precio por docena &nbsp;·&nbsp; Mínimo 1 docena &nbsp;·&nbsp; Despacho a todo Lima</p>
                 </div>
                 <div className="products-grid">
                     {products.map((product) => (
