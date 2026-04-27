@@ -2599,7 +2599,10 @@ header {
     .cp-subtitle { font-size: 0.97rem; }
     .cp-section-title { font-size: 1.45rem; margin-bottom: 1.8rem; }
     .cp-section-title--left { font-size: 1.5rem; }
-    .cp-hero-stats { flex-wrap: wrap; gap: 0.8rem; }
+    .cp-hero-stats { flex-wrap: nowrap; gap: 0.5rem; padding: 0.85rem 0.9rem; width: 100%; justify-content: space-around; }
+    .cp-stat-num { font-size: 1.3rem; }
+    .cp-stat-label { font-size: 0.6rem; }
+    .cp-stat-divider { height: 28px; }
     .cp-mv-section { padding: 3.5rem 0; }
     .cp-mv-card { padding: 1.8rem 1.4rem; }
     .cp-pillars-grid { grid-template-columns: 1fr; }
