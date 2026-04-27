@@ -32,13 +32,26 @@ serve(async (req) => {
 
     if (!pedidoId && !orderId) throw new Error("Se requiere pedidoId o orderId en el body.");
 
-    const supabaseUrl     = Deno.env.get('SUPABASE_URL') ?? '';
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
-    const authHeader      = req.headers.get('Authorization');
+    const supabaseUrl        = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseAnonKey    = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const authHeader         = req.headers.get('Authorization');
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader || '' } },
     });
+
+    // Verificar que el llamante es admin usando service role
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const token = authHeader?.replace('Bearer ', '') ?? '';
+    console.log("authHeader presente:", !!authHeader, "token length:", token.length);
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+    console.log("user:", user?.email, "userError:", userError?.message, "app_metadata:", JSON.stringify(user?.app_metadata));
+    if (userError || !user) throw new Error("No autenticado.");
+    const role = user.app_metadata?.role;
+    if (role !== 'admin') throw new Error("Acceso denegado: se requiere rol admin.");
 
     // Consultar filas del pedido
     let rows: any[];
@@ -67,6 +80,9 @@ serve(async (req) => {
     if (numError) throw new Error(`Error obteniendo correlativo: ${numError.message}`);
     const numero = siguienteNum as number;
 
+    // Totales
+    const totalSoles = rows.reduce((s: number, r: any) => s + (parseFloat(r.total_soles) || 0), 0);
+
     // Datos del cliente
     const clienteRuc    = (ruc || firstRow.ruc || '').replace(/\D/g, '');
     const clienteDni    = (firstRow.dni ?? '').replace(/\D/g, '');
@@ -86,9 +102,6 @@ serve(async (req) => {
     const clienteNumDoc  = esFactura
       ? clienteRuc
       : (clienteDni.length === 8 ? clienteDni : '00000000');
-
-    // Totales y fecha
-    const totalSoles = rows.reduce((s: number, r: any) => s + (parseFloat(r.total_soles) || 0), 0);
 
     const formatter = new Intl.DateTimeFormat('es-PE', {
       timeZone: 'America/Lima',
