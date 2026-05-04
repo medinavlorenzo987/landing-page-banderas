@@ -191,7 +191,7 @@ function EditProductModal({ product, onClose, onSaved }) {
 
                 <form className="ap-modal-form" onSubmit={handleSave} style={{ padding: '1.5rem', maxHeight: '70vh', overflowY: 'auto' }}>
                     
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
                         <div className="ap-modal-field" style={{ marginBottom: 0 }}>
                             <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '0.4rem', display: 'block' }}>Título (Público)</label>
                             <input name="title" value={form.title} onChange={handleChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none', transition: 'border-color 0.2s', fontSize: '0.95rem' }} onFocus={e => e.target.style.borderColor = '#3B82F6'} onBlur={e => e.target.style.borderColor = '#CBD5E1'} />
