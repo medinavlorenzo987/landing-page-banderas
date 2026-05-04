@@ -262,6 +262,57 @@ body { font-family: 'Inter', 'Poppins', sans-serif; background: #F1F5F9; color: 
 }
 .ap-group-edit-item-name  { flex: 1; font-size: .85rem; color: #334155; }
 .ap-group-edit-item-price { font-size: .82rem; font-weight: 700; color: #059669; white-space: nowrap; }
+
+/* Group Edit Inputs */
+.ap-ge-item-row {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid #E2E8F0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+.ap-ge-select {
+    width: 100%;
+    padding: 0.45rem;
+    border-radius: 8px;
+    border: 1.5px solid #CBD5E1;
+    font-size: 0.85rem;
+    color: #1E293B;
+    outline: none;
+    transition: border-color 0.2s;
+    background: #fff;
+}
+.ap-ge-select:focus { border-color: #6366F1; }
+
+.ap-ge-item-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+.ap-ge-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.ap-ge-input-group span {
+    font-size: 0.75rem;
+    color: #64748B;
+    font-weight: 700;
+}
+.ap-ge-input-group input {
+    width: 65px;
+    padding: 0.35rem;
+    border-radius: 8px;
+    border: 1.5px solid #CBD5E1;
+    font-size: 0.85rem;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.ap-ge-input-group input:focus { border-color: #6366F1; }
+.ap-ge-input-group.ms-auto { margin-left: auto; }
+.ap-ge-input-group.ms-auto input { width: 85px; text-align: right; font-weight: 700; color: #0F172A; }
+
 .ap-group-edit-total {
     display: flex; justify-content: space-between; align-items: center;
     padding: .65rem 1rem; background: #F1F5F9;
@@ -559,6 +610,13 @@ body { font-family: 'Inter', 'Poppins', sans-serif; background: #F1F5F9; color: 
     .ap-modal-actions { flex-direction: column-reverse; }
     .ap-modal-btn-cancel,
     .ap-modal-btn-save { width: 100%; text-align: center; }
+
+    .ap-group-edit-products { margin: 1rem 1rem 0; }
+    .ap-ge-item-row { padding: 0.8rem; }
+    .ap-ge-item-controls { flex-wrap: wrap; gap: 0.6rem; }
+    .ap-ge-input-group { flex: 1; }
+    .ap-ge-input-group input { width: 100%; }
+    .ap-ge-input-group.ms-auto input { width: 100%; }
 }
 
 /* ── Table card ─────────────────────────────────────────────────── */

@@ -256,12 +256,46 @@ function EmitirModal({ group, onClose, onEmitir, emitting }) {
 
 /* ─── Modal de Edición de Grupo (multi-producto) ───────── */
 function GroupEditModal({ group, onClose, onSaved }) {
+    const PRODUCTOS = [
+        'BANDERAS 60x90', 'BANDERAS 90x150', 'BANDERINES DE ESCRITORIO',
+        'BANDERAS BORDADAS', 'BANDERAS PERSONALIZADAS', 'ROLLOS DE TELA',
+        'BANDERA INSTITUCIONAL (RASO)', 'BANDERA TIPO GOTA', 'BANDERAS PUBLICITARIAS'
+    ];
+
+    const PRECIOS_BASE = {
+        'BANDERAS 60x90': 20,
+        'BANDERAS 90x150': 35,
+        'BANDERINES DE ESCRITORIO': 35,
+        'BANDERAS BORDADAS': 50,
+        'BANDERAS PERSONALIZADAS': 50,
+        'ROLLOS DE TELA': 150,
+        'BANDERA INSTITUCIONAL (RASO)': 45,
+        'BANDERA TIPO GOTA': 90,
+        'BANDERAS PUBLICITARIAS': 80
+    };
+
     const [form, setForm] = useState({
         nombre:    group.nombre    || '',
         dni:       group.dni       || '',
         direccion: group.direccion || '',
         telefono:  group.telefono  || '',
     });
+    
+    const [items, setItems] = useState(
+        group.items.map(item => {
+            const qty = parseFloat(item.cantidad_docenas) || 1;
+            const total = parseFloat(item.total_soles) || 0;
+            return {
+                id: item.id,
+                producto: item.producto || '',
+                cantidad_docenas: item.cantidad_docenas || 0,
+                total_soles: item.total_soles || 0,
+                precio_unitario: total / qty
+            };
+        })
+    );
+
+    const [itemsToDelete, setItemsToDelete] = useState([]);
     const [saving, setSaving] = useState(false);
     const [error, setError]   = useState('');
 
@@ -271,10 +305,39 @@ function GroupEditModal({ group, onClose, onSaved }) {
         return () => window.removeEventListener('keydown', handleKey);
     }, [onClose]);
 
+    const handleItemChange = (index, field, value) => {
+        const newItems = [...items];
+        newItems[index][field] = value;
+        
+        if (field === 'producto') {
+            const defaultPrice = PRECIOS_BASE[value] || newItems[index].precio_unitario;
+            newItems[index].precio_unitario = defaultPrice;
+            const qty = parseFloat(newItems[index].cantidad_docenas) || 0;
+            newItems[index].total_soles = (qty * defaultPrice).toFixed(2);
+        } else if (field === 'cantidad_docenas') {
+            const qty = parseFloat(value) || 0;
+            newItems[index].total_soles = (qty * newItems[index].precio_unitario).toFixed(2);
+        } else if (field === 'total_soles') {
+            const total = parseFloat(value) || 0;
+            const qty = parseFloat(newItems[index].cantidad_docenas) || 1;
+            newItems[index].precio_unitario = total / qty;
+        }
+
+        setItems(newItems);
+    };
+
+    const handleDeleteItem = (index) => {
+        const item = items[index];
+        setItemsToDelete(prev => [...prev, item.id]);
+        setItems(items.filter((_, i) => i !== index));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
         setError('');
+        
+        // 1. Guardar info de cliente
         const payload = {
             nombre:    form.nombre.trim(),
             dni:       form.dni.trim(),
@@ -284,21 +347,46 @@ function GroupEditModal({ group, onClose, onSaved }) {
         const { error: supaErr } = group.hasPedidoId
             ? await supabase.from('ventas').update(payload).eq('pedido_id', group.pedido_id)
             : await supabase.from('ventas').update(payload).in('id', group.ids);
+            
         if (supaErr) {
-            setError('Error al guardar: ' + supaErr.message);
+            setError('Error al guardar cliente: ' + supaErr.message);
             setSaving(false);
-        } else {
-            onSaved(payload);
+            return;
+        }
+
+        // 2. Guardar cada producto
+        try {
+            await Promise.all(items.map(item => 
+                supabase.from('ventas')
+                    .update({ 
+                        producto: item.producto, 
+                        cantidad_docenas: parseFloat(item.cantidad_docenas) || 0, 
+                        total_soles: parseFloat(item.total_soles) || 0 
+                    })
+                    .eq('id', item.id)
+            ));
+            
+            // 3. Eliminar productos
+            if (itemsToDelete.length > 0) {
+                await supabase.from('ventas').delete().in('id', itemsToDelete);
+            }
+            
+            onSaved({ ...payload, itemsUpdated: items, itemsDeleted: itemsToDelete });
+        } catch (err) {
+            setError('Error al guardar productos: ' + err.message);
+            setSaving(false);
         }
     };
+
+    const totalGroup = items.reduce((acc, item) => acc + (parseFloat(item.total_soles) || 0), 0);
 
     return (
         <div className="ap-modal-backdrop" onClick={onClose}>
             <div className="ap-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
                 <div className="ap-modal-header">
                     <div>
-                        <h2 className="ap-modal-title">Editar Cliente</h2>
-                        <p className="ap-modal-sub">{group.items.length} producto{group.items.length > 1 ? 's' : ''} en este pedido</p>
+                        <h2 className="ap-modal-title">Editar Cliente y Pedido</h2>
+                        <p className="ap-modal-sub">{items.length} producto{items.length > 1 ? 's' : ''} en este pedido</p>
                     </div>
                     <button className="ap-modal-close" onClick={onClose} aria-label="Cerrar">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -307,18 +395,38 @@ function GroupEditModal({ group, onClose, onSaved }) {
                     </button>
                 </div>
 
-                {/* Productos (solo lectura) */}
-                <div className="ap-group-edit-products">
-                    {group.items.map((item, i) => (
-                        <div key={i} className="ap-group-edit-item">
-                            <span className="ap-prod-line-qty">{item.cantidad_docenas}×</span>
-                            <span className="ap-group-edit-item-name">{item.producto}</span>
-                            <span className="ap-group-edit-item-price">S/ {(item.total_soles || 0).toFixed(2)}</span>
+                <div className="ap-group-edit-products" style={{ margin: '1rem 1.5rem 0', background: '#FAFAFA' }}>
+                    {items.map((item, i) => (
+                        <div key={item.id} className="ap-ge-item-row" style={{ position: 'relative' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <select 
+                                    value={item.producto} 
+                                    onChange={e => handleItemChange(i, 'producto', e.target.value)}
+                                    className="ap-ge-select"
+                                >
+                                    <option value="" disabled>Selecciona producto</option>
+                                    {PRODUCTOS.map(p => <option key={p} value={p}>{p}</option>)}
+                                    {!PRODUCTOS.includes(item.producto) && item.producto && <option value={item.producto}>{item.producto}</option>}
+                                </select>
+                                <button type="button" onClick={() => handleDeleteItem(i)} style={{ width: '35px', borderRadius: '8px', border: '1px solid #FECACA', background: '#FEF2F2', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} title="Eliminar producto">
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                </button>
+                            </div>
+                            <div className="ap-ge-item-controls">
+                                <div className="ap-ge-input-group">
+                                    <span>Cant:</span>
+                                    <input type="number" min="0" step="1" value={item.cantidad_docenas} onChange={e => handleItemChange(i, 'cantidad_docenas', e.target.value)} />
+                                </div>
+                                <div className="ap-ge-input-group ms-auto">
+                                    <span>S/</span>
+                                    <input type="number" min="0" step="1" value={item.total_soles} onChange={e => handleItemChange(i, 'total_soles', e.target.value)} className="font-bold text-right" />
+                                </div>
+                            </div>
                         </div>
                     ))}
-                    <div className="ap-group-edit-total">
-                        <span>Total</span>
-                        <span>S/ {group.total.toFixed(2)}</span>
+                    <div className="ap-group-edit-total" style={{ background: '#EFF6FF', color: '#1E40AF' }}>
+                        <span>Total Actualizado</span>
+                        <span>S/ {totalGroup.toFixed(2)}</span>
                     </div>
                 </div>
 
@@ -371,10 +479,27 @@ function EditModal({ order, onClose, onSaved }) {
     });
     const [saving, setSaving] = useState(false);
     const [error, setError]   = useState('');
+    
+    const initialQty = parseFloat(order.cantidad_docenas) || 1;
+    const initialTotal = parseFloat(order.total_soles) || 0;
+    const [unitPrice, setUnitPrice] = useState(initialTotal / initialQty);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setForm(prev => ({ ...prev, [name]: value }));
+        setForm(prev => {
+            const next = { ...prev, [name]: value };
+            
+            if (name === 'cantidad_docenas') {
+                const qty = parseFloat(value) || 0;
+                next.total_soles = (qty * unitPrice).toFixed(2);
+            } else if (name === 'total_soles') {
+                const total = parseFloat(value) || 0;
+                const qty = parseFloat(next.cantidad_docenas) || 1;
+                setUnitPrice(total / qty);
+            }
+            
+            return next;
+        });
     };
 
     const handleSubmit = async (e) => {
@@ -452,12 +577,12 @@ function EditModal({ order, onClose, onSaved }) {
                         </div>
                         <div className="ap-modal-field">
                             <label htmlFor="edit-docenas">Docenas</label>
-                            <input id="edit-docenas" name="cantidad_docenas" type="number" min="0" step="0.5"
+                            <input id="edit-docenas" name="cantidad_docenas" type="number" min="0" step="1"
                                 value={form.cantidad_docenas} onChange={handleChange} required />
                         </div>
                         <div className="ap-modal-field">
                             <label htmlFor="edit-total">Total (S/)</label>
-                            <input id="edit-total" name="total_soles" type="number" min="0" step="0.01"
+                            <input id="edit-total" name="total_soles" type="number" min="0" step="1"
                                 value={form.total_soles} onChange={handleChange} required />
                         </div>
                     </div>
@@ -631,8 +756,26 @@ function PedidosSection({ orders, setOrders, loading, onRefresh, onLogout }) {
         setEditOrder(null);
     };
 
-    const handleGroupSaved = (updatedFields) => {
-        setOrders(prev => prev.map(o => editGroup.ids.includes(o.id) ? { ...o, ...updatedFields } : o));
+    const handleGroupSaved = (payload) => {
+        const { itemsUpdated, itemsDeleted, ...clientData } = payload;
+        
+        setOrders(prev => prev.map(o => {
+            if (editGroup.ids.includes(o.id)) {
+                // Encontrar los datos actualizados del producto específico
+                const productUpdate = itemsUpdated ? itemsUpdated.find(i => i.id === o.id) : null;
+                
+                return { 
+                    ...o, 
+                    ...clientData,
+                    ...(productUpdate ? {
+                        producto: productUpdate.producto,
+                        cantidad_docenas: parseFloat(productUpdate.cantidad_docenas) || 0,
+                        total_soles: parseFloat(productUpdate.total_soles) || 0
+                    } : {})
+                };
+            }
+            return o;
+        }).filter(o => !(itemsDeleted || []).includes(o.id)));
         setEditGroup(null);
     };
 
