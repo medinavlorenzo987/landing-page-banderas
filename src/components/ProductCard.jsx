@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 export default function ProductCard({ product, onAddToCart }) {
     const [qty, setQty] = useState(1);
+    const [imgIndex, setImgIndex] = useState(0);
     const { Icon } = product;
 
     const changeQty = (delta) => {
@@ -20,10 +21,32 @@ export default function ProductCard({ product, onAddToCart }) {
                 <span className={badgeClass}>{product.badge}</span>
             )}
 
-            <div className="product-img" style={{ background: product.gradient }}>
-                <div className="product-img-icon">
-                    <Icon />
-                </div>
+            <div className="product-img" style={{ background: product.gradient, position: 'relative', overflow: 'hidden' }}>
+                {product.images && product.images.length > 0 ? (
+                    <>
+                        <img src={product.images[imgIndex]} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }} />
+                        {product.images.length > 1 && (
+                            <>
+                                <button onClick={() => setImgIndex(prev => (prev - 1 + product.images.length) % product.images.length)} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.4)', color: 'white', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', paddingBottom: '2px', backdropFilter: 'blur(4px)' }}>‹</button>
+                                <button onClick={() => setImgIndex(prev => (prev + 1) % product.images.length)} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.4)', color: 'white', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', paddingBottom: '2px', backdropFilter: 'blur(4px)' }}>›</button>
+                                <div style={{ position: 'absolute', bottom: '8px', left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: '6px' }}>
+                                    {product.images.map((_, i) => (
+                                        <button 
+                                            key={i} 
+                                            onClick={() => setImgIndex(i)}
+                                            style={{ width: '8px', height: '8px', borderRadius: '50%', border: 'none', padding: 0, cursor: 'pointer', background: i === imgIndex ? '#fff' : 'rgba(255,255,255,0.4)', boxShadow: '0 1px 3px rgba(0,0,0,0.5)', transition: 'background 0.2s' }} 
+                                            aria-label={`Ver imagen ${i+1}`}
+                                        />
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </>
+                ) : (
+                    <div className="product-img-icon">
+                        <Icon />
+                    </div>
+                )}
             </div>
 
             <div className="product-body">

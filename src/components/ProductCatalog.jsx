@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import ProductCard from './ProductCard';
+import { supabase } from '../supabaseClient';
 
 const FlagWave = () => (
     <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.9">
@@ -24,7 +26,7 @@ const DropFlag = () => (
     </svg>
 );
 
-const products = [
+const fallbackProducts = [
     {
         id: 'qty-poliseda',
         name: 'Bandera Poliseda',
@@ -76,6 +78,26 @@ const products = [
 ];
 
 export default function ProductCatalog({ onAddToCart }) {
+    const [products, setProducts] = useState(fallbackProducts);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const { data, error } = await supabase.from('catalogo_productos').select('*').order('created_at', { ascending: true });
+                if (!error && data && data.length > 0) {
+                    const merged = data.map((dbP) => {
+                        const fallback = fallbackProducts.find(f => f.name === dbP.name) || fallbackProducts[0];
+                        return { ...fallback, ...dbP, price: Number(dbP.price) };
+                    });
+                    setProducts(merged);
+                }
+            } catch (err) {
+                // Ignore err, use fallback
+            }
+        };
+        fetchProducts();
+    }, []);
+
     return (
         <section className="catalog-section" id="catalogo">
             <div className="catalog-container">

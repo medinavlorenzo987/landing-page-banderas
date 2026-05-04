@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { supabase } from '../supabaseClient';
+import CatalogoSection from './CatalogoSection';
 
 const ESTADOS = ['pendiente', 'pagado', 'en proceso', 'entregado', 'cancelado'];
 
@@ -37,6 +38,14 @@ const NAV_ITEMS = [
             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
                     d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+            </svg>
+        ),
+    },
+    {
+        id: 'catalogo', label: 'Catálogo',
+        icon: (
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
         ),
     },
@@ -1356,6 +1365,8 @@ function MetricasSection({ orders }) {
 
 /* ─── Sección: Logística ───────────────────────────────────────── */
 function LogisticaSection({ orders, setOrders }) {
+    const [activeCol, setActiveCol] = useState('pagado');
+
     // Filtrar pedidos relevantes para logística
     const validStates = ['pagado', 'en proceso', 'entregado'];
     const logisticsOrders = orders.filter(o => validStates.includes(o.estado?.toLowerCase()));
@@ -1380,6 +1391,50 @@ function LogisticaSection({ orders, setOrders }) {
 
     return (
         <div className="ap-logistica">
+            <style>{`
+                .ap-logistica-tabs { display: none; }
+                @media (max-width: 768px) {
+                    .ap-logistica-tabs {
+                        display: flex;
+                        gap: 0.5rem;
+                        margin-bottom: 1rem;
+                        overflow-x: auto;
+                        padding-bottom: 0.5rem;
+                        -webkit-overflow-scrolling: touch;
+                    }
+                    .ap-log-tab {
+                        padding: 0.5rem 1rem;
+                        border: 1px solid #E2E8F0;
+                        background: #fff;
+                        border-radius: 999px;
+                        font-size: 0.85rem;
+                        font-weight: 600;
+                        color: #64748B;
+                        white-space: nowrap;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.4rem;
+                        transition: all 0.2s;
+                    }
+                    .ap-log-tab.active {
+                        background: #0F172A;
+                        color: #fff;
+                        border-color: #0F172A;
+                    }
+                    .ap-kanban-board {
+                        gap: 0;
+                    }
+                    .ap-kanban-col {
+                        display: none !important;
+                        width: 100% !important;
+                    }
+                    .ap-kanban-col.active {
+                        display: flex !important;
+                    }
+                }
+            `}</style>
+
             <div className="ap-logistica-header">
                 <div>
                     <h2 className="ap-section-heading" style={{ marginBottom: 0 }}>Tablero de Logística</h2>
@@ -1387,11 +1442,26 @@ function LogisticaSection({ orders, setOrders }) {
                 </div>
             </div>
 
+            <div className="ap-logistica-tabs">
+                {columns.map(col => {
+                    const count = logisticsOrders.filter(o => o.estado?.toLowerCase() === col.id).length;
+                    return (
+                        <button 
+                            key={`tab-${col.id}`}
+                            className={`ap-log-tab ${activeCol === col.id ? 'active' : ''}`}
+                            onClick={() => setActiveCol(col.id)}
+                        >
+                            {col.icon} {col.title} ({count})
+                        </button>
+                    );
+                })}
+            </div>
+
             <div className="ap-kanban-board">
                 {columns.map(col => {
                     const colOrders = logisticsOrders.filter(o => o.estado?.toLowerCase() === col.id);
                     return (
-                        <div key={col.id} className="ap-kanban-col">
+                        <div key={col.id} className={`ap-kanban-col ${activeCol === col.id ? 'active' : ''}`}>
                             <div className="ap-kanban-col-header" style={{ borderTopColor: col.color }}>
                                 <span className="ap-kanban-icon">{col.icon}</span>
                                 <h3>{col.title}</h3>
@@ -1593,6 +1663,7 @@ export default function AdminPanel({ onLogout }) {
                     {activeSection === 'pedidos'   && <PedidosSection  orders={orders} setOrders={setOrders} loading={loading} onRefresh={silentRefresh} onLogout={onLogout} />}
                     {activeSection === 'metricas'  && <MetricasSection  orders={orders} />}
                     {activeSection === 'logistica' && <LogisticaSection orders={orders} setOrders={setOrders} />}
+                    {activeSection === 'catalogo'  && <CatalogoSection />}
                 </div>
             </main>
         </div>
