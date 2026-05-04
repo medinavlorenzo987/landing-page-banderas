@@ -1212,18 +1212,80 @@ function MetricasSection({ orders }) {
 }
 
 /* ─── Sección: Logística ───────────────────────────────────────── */
-function LogisticaSection() {
+function LogisticaSection({ orders, setOrders }) {
+    // Filtrar pedidos relevantes para logística
+    const validStates = ['pagado', 'en proceso', 'entregado'];
+    const logisticsOrders = orders.filter(o => validStates.includes(o.estado?.toLowerCase()));
+
+    const updateOrderState = async (id, newState) => {
+        const prevOrders = [...orders];
+        // Actualización optimista
+        setOrders(prev => prev.map(o => o.id === id ? { ...o, estado: newState } : o));
+        
+        const { error } = await supabase.from('ventas').update({ estado: newState }).eq('id', id);
+        if (error) {
+            setOrders(prevOrders); // Revertir si hay error
+            alert('Error actualizando estado en logística: ' + error.message);
+        }
+    };
+
+    const columns = [
+        { id: 'pagado', title: 'Por Despachar', icon: '📦', color: '#10B981', nextState: 'en proceso', nextText: 'A Tránsito' },
+        { id: 'en proceso', title: 'En Tránsito', icon: '🚚', color: '#3B82F6', nextState: 'entregado', nextText: 'Entregado' },
+        { id: 'entregado', title: 'Entregados', icon: '✅', color: '#64748B', nextState: null }
+    ];
+
     return (
         <div className="ap-logistica">
-            <h2 className="ap-section-heading">Logística</h2>
-            <div className="ap-coming-card">
-                <svg width="56" height="56" fill="none" stroke="#94A3B8" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"
-                        d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                </svg>
-                <h3>Módulo de Logística</h3>
-                <p>Seguimiento de envíos, rutas de entrega y gestión de transportistas. Próximamente disponible.</p>
-                <span className="ap-badge-coming">En desarrollo</span>
+            <div className="ap-logistica-header">
+                <div>
+                    <h2 className="ap-section-heading" style={{ marginBottom: 0 }}>Tablero de Logística</h2>
+                    <p className="ap-logistica-sub">Gestiona el despacho y entrega de los pedidos pagados.</p>
+                </div>
+            </div>
+
+            <div className="ap-kanban-board">
+                {columns.map(col => {
+                    const colOrders = logisticsOrders.filter(o => o.estado?.toLowerCase() === col.id);
+                    return (
+                        <div key={col.id} className="ap-kanban-col">
+                            <div className="ap-kanban-col-header" style={{ borderTopColor: col.color }}>
+                                <span className="ap-kanban-icon">{col.icon}</span>
+                                <h3>{col.title}</h3>
+                                <span className="ap-kanban-count">{colOrders.length}</span>
+                            </div>
+                            <div className="ap-kanban-cards">
+                                {colOrders.length === 0 ? (
+                                    <p className="ap-kanban-empty">Sin pedidos</p>
+                                ) : (
+                                    colOrders.map(order => (
+                                        <div key={order.id} className="ap-kanban-card">
+                                            <div className="ap-kcard-header">
+                                                <strong>{order.nombre || 'Cliente Anónimo'}</strong>
+                                                <span className="ap-kcard-date">
+                                                    {order.fecha_creacion ? new Date(order.fecha_creacion).toLocaleDateString('es-PE') : ''}
+                                                </span>
+                                            </div>
+                                            <div className="ap-kcard-body">
+                                                <p className="ap-kcard-addr">📍 {order.direccion || 'Sin dirección'}</p>
+                                                <p className="ap-kcard-prod">🛒 {order.cantidad_docenas}x {order.producto}</p>
+                                            </div>
+                                            {col.nextState && (
+                                                <button 
+                                                    className="ap-kcard-btn" 
+                                                    style={{ backgroundColor: col.color }}
+                                                    onClick={() => updateOrderState(order.id, col.nextState)}
+                                                >
+                                                    Mover a {col.nextText} &rarr;
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );
@@ -1387,7 +1449,7 @@ export default function AdminPanel({ onLogout }) {
                 <div className="ap-content">
                     {activeSection === 'pedidos'   && <PedidosSection  orders={orders} setOrders={setOrders} loading={loading} onRefresh={silentRefresh} onLogout={onLogout} />}
                     {activeSection === 'metricas'  && <MetricasSection  orders={orders} />}
-                    {activeSection === 'logistica' && <LogisticaSection />}
+                    {activeSection === 'logistica' && <LogisticaSection orders={orders} setOrders={setOrders} />}
                 </div>
             </main>
         </div>
