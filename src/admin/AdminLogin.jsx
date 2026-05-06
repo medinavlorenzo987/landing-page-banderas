@@ -11,13 +11,20 @@ export default function AdminLogin() {
         setLoading(true);
         setError('');
 
+        let email = form.email;
+        if (/^\d{9}$/.test(email)) {
+            email = `${email}@mvbanderas.pe`;
+        }
+
         const { error: authError } = await supabase.auth.signInWithPassword({
-            email: form.email,
+            email: email,
             password: form.pass,
         });
 
         if (authError) {
-            setError('Usuario o contraseña incorrectos');
+            setError(authError.message === 'Invalid login credentials' 
+                ? 'Email o contraseña incorrectos' 
+                : authError.message);
         }
 
         setLoading(false);
@@ -38,11 +45,11 @@ export default function AdminLogin() {
                     <div className="admin-field">
                         <label>Email</label>
                         <input
-                            type="email"
-                            placeholder="admin@ejemplo.com"
+                            type="text"
+                            placeholder="email@ejemplo.com o celular"
                             value={form.email}
                             onChange={(e) => { setForm({ ...form, email: e.target.value }); setError(''); }}
-                            autoComplete="email"
+                            autoComplete="username"
                         />
                     </div>
                     <div className="admin-field">
